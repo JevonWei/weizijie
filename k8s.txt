@@ -1,0 +1,214 @@
+主机角色
+	192.168.100.2	master.danran.com 	master,etcd,private
+	192.168.100.3	node1.danran.com	node1
+	192.168.100.4	node2.danran.com	node2
+	
+配置各主机hosts文件
+	master，node1，node2各节点主机都需配置hosts解析文件
+	[root@master ~]# cat /etc/hosts
+	192.168.100.2	master.danran.com master etcd1 registry
+	192.168.100.3	node1.danram.com
+	192.168.100.4	node2.danran.com
+	
+各节点主机配置时间同步
+	因为在此各系统都可连接外部网络，故没有配置内网的ntp服务器，直接使用的外网的时间同步，也可配置内网的ntp服务端
+	时间同步可使用ntp或chronyd，在本公司redhat系统都使用ntp配置时间同步
+	[root@master ~]# yum -y install ntp
+	[root@master ~]# systemctl start ntpd
+	[root@master ~]# systemctl enable ntpd
+	
+各节点关闭firewalld.server及iptables.server，并确保其服务不会自动开启
+	[root@master ~]# systemctl disable firewalld
+	[root@master ~]# systemctl stop firewalld
+	[root@master ~]# systemctl disable iptables
+	[root@master ~]# systemctl stop iptables
+	[root@master ~]# systemctl status firewalld
+	● firewalld.service - firewalld - dynamic firewall daemon
+	   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; disabled; vendor preset: enabled)
+	   Active: inactive (dead)
+		 Docs: man:firewalld(1)
+		 
+配置private registry节点
+	在本环境中，由于资源有限，故将registry配置在master节点中
+	
+	安装registry程序包docker-distribution
+	[root@master ~]# yum -y install docker-distribution
+	
+	安装nginx做private registry的代理设置
+	[root@master ~]# yum -y install nginx
+
+	配置registry文件，配置http为本机地址，由于使用的nginx反代，故可使用本机的私有地址，rootdirectory指定registry存放存储目录路径
+	[root@master ~]# cat /etc/docker-distribution/registry/config.yml
+	version: 0.1
+	log:
+	  fields:
+		service: registry
+	storage:
+		cache:
+			layerinfo: inmemory
+		filesystem:
+			rootdirectory: /var/lib/registry
+	http:
+		addr: 127.0.0.1:5000
+	
+	启动registry
+	[root@master ~]# systemctl start docker-distribution
+	[root@master ~]# systemctl enable docker-distribution
+	Created symlink from /etc/systemd/system/multi-user.target.wants/docker-distribution.service to /usr/lib/systemd/system/docker-distribution.service.
+	
+	
+	确认registry服务的5000端口已监听
+	[root@master ~]# ss -ntl
+	State      Recv-Q Send-Q     Local Address:Port                    Peer Address:Port              
+	LISTEN     0      128                    *:22                                 *:*                  
+	LISTEN     0      100            127.0.0.1:25                                 *:*                  
+	LISTEN     0      128            127.0.0.1:5000                               *:*                  
+	LISTEN     0      128                   :::22                                :::*                  
+	LISTEN     0      100                  ::1:25                                :::*  
+	
+	
+	
+	配置nginx反向代理
+	[root@master ~]# vim /etc/nginx/conf.d/registry.conf
+	server {
+	listen 80;
+	server_name registry.danran.com;
+	client_max_body_size 0;   \\不限制client上传时使用的body大小
+	location / {
+            proxy_pass  http://127.0.0.1:5000;    \\指定代理的registry地址
+            proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+            proxy_redirect off;
+            proxy_buffering off;
+            proxy_set_header        Host            $host;
+            proxy_set_header        X-Real-IP       $remote_addr;
+            proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+
+          #  auth_basic "Docker Registry Service";				\\启用registry认证功能，在此不配做registry的认证
+          #  auth_basic_user_file "/etc/nginx/.ngxpasswd";
+        }	
+	}
+	
+	启动nginx服务并确认80端口已监听
+	[root@master ~]# systemctl start nginx
+	[root@master ~]# systemctl enable nginx
+	Created symlink from /etc/systemd/system/multi-user.target.wants/nginx.service to /usr/lib/systemd/system/nginx.service.
+	
+	[root@master ~]# ss -ntl
+	State      Recv-Q Send-Q     Local Address:Port                    Peer Address:Port              
+	LISTEN     0      128                    *:80                                 *:*                  
+	LISTEN     0      128                    *:22                                 *:*                  
+	LISTEN     0      100            127.0.0.1:25                                 *:*                  
+	LISTEN     0      128            127.0.0.1:5000                               *:*                  
+	LISTEN     0      128                   :::80                                :::*                  
+	LISTEN     0      128                   :::22                                :::*                  
+	LISTEN     0      100                  ::1:25                                :::* 
+
+	
+	
+
+部署etcd
+	在本次的测试环境架构中，etcd与master在同一节点上，故在此环境中的master上安装etcd组件
+	
+	安装etcd
+	[root@master ~]# yum install etcd -y
+	
+	查看etcd包中的相关文件，/usr/bin/etcd为主程序文件，	/usr/bin/etcdctl为客户端程序文件
+	[root@master ~]# rpm -ql etcd | less
+	/etc/etcd
+	/etc/etcd/etcd.conf
+	/usr/bin/etcd
+	/usr/bin/etcdctl
+	/usr/lib/systemd/system/etcd.service
+	/usr/share/doc/etcd-3.2.15
+	/usr/share/doc/etcd-3.2.15/CONTRIBUTING.md
+	/usr/share/doc/etcd-3.2.15/README.md
+	/usr/share/doc/etcd-3.2.15/ROADMAP.md
+	/usr/share/doc/etcd-3.2.15/glide.lock
+	/usr/share/licenses/etcd-3.2.15
+	/usr/share/licenses/etcd-3.2.15/LICENSE
+	/var/lib/etcd
+
+	
+	修改/etc/etcd/etcd.conf配置文件，修改提供etcd服务的监听IP及端口，在主机名解析中，etcd1及master都可解析
+	
+	在/etc/etcd/etcd.conf文件中，[Member]字段定义集群中的成员关系，[Clustering]定义集群的属性，[proxy]定义集群的代理
+		[Security]安全相关的属性定义，[Logging]登录相关的定义，[Profiling]性能本身相关的定义，[Auth]认证配置
+
+	[root@master ~]# vim /etc/etcd/etcd.conf 
+	#[Member]
+	ETCD_NAME="etcd1"    \\当前节点被识别时使用的name，默认为default
+	ETCD_DATA_DIR="/var/lib/etcd/etcd1.etcd"	\\保存当前节点数据的目录
+	ETCD_LISTEN_CLIENT_URLS="http://192.168.100.2:2379"		\\监听接收客户端访问的入口地址及端口，修改IP为etcd1的2379端口
+	
+	#[Clustering]
+	ETCD_ADVERTISE_CLIENT_URLS="hhttp://192.168.100.2:2379"   \\etcd集群环境中，当前节点通过etcd1地址的2379端口向外通信通告集群或成员身份
+	ETCD_INITIAL_CLUSTER="etcd1=http://etcd1:2380"   \\当只有一个etcd单节点时，启用该选项表示只有单节点，2380为etcd集群内部通信协商的端口
+	ETCD_INITIAL_ADVERTISE_PEER_URLS="http://etcd1:2380"
+	
+	上述的各选项意义如下
+		ETCD_NAME：当前节点的名称
+		ETCD_LISTEN_CLIENT_URLS：当前节点用于与etcd客户端通信的URL列表，彼此间以逗号分隔；
+		ETCD_ADVERTISE_CLIENT_URLS：当前节点向外通告的其用于与客户端通信的URL列表
+		ETCD_INITIAL_CLUSTER：用于etcd启动时初始化的集群配置；构建一个多节点的etcd集群时，需要让集群成员间通信的端口监听于对外通信的IP地址上，
+			默认为localhost；以下两个选项可用于此配置
+		ETCD_LISTEN_PEER_USER：list of URLs to listen on for peer traffic
+		ETCD_INITIAL_ADVERTISE_PEER_URLS：list of this member's peer URLs to advertise to the rest of the cluster 
+		
+	
+	
+	
+	启动etcd服务
+	[root@master ~]# systemctl start etcd.service
+	[root@master ~]# systemctl enable etcd.service
+	Created symlink from /etc/systemd/system/multi-user.target.wants/etcd.service to /usr/lib/systemd/system/etcd.service.
+
+	2379及2380端口都已监听
+	[root@master ~]# ss -ntl
+	State      Recv-Q Send-Q     Local Address:Port                    Peer Address:Port              
+	LISTEN     0      128        192.168.100.2:2379                               *:*                  
+	LISTEN     0      128            127.0.0.1:2380                               *:*                  
+	LISTEN     0      128                    *:80                                 *:*                  
+	LISTEN     0      128                    *:22                                 *:*                  
+	LISTEN     0      100            127.0.0.1:25                                 *:*                  
+	LISTEN     0      128            127.0.0.1:5000                               *:*                  
+	LISTEN     0      128                   :::80                                :::*                  
+	LISTEN     0      128                   :::22                                :::*                  
+	LISTEN     0      100                  ::1:25              					 :::* 
+
+查看etcd集群成员列表
+	[root@master ~]# etcdctl --help  
+	etcdctl各子命令及功能
+	
+	COMMANDS:
+		 backup          backup an etcd directory
+		 cluster-health  check the health of the etcd cluster
+		 mk              make a new key with a given value
+		 mkdir           make a new directory
+		 rm              remove a key or a directory
+		 rmdir           removes the key if it is an empty directory or a key-value pair
+		 get             retrieve the value of a key
+		 ls              retrieve a directory
+		 set             set the value of a key
+		 setdir          create a new directory or update an existing directory TTL
+		 update          update an existing key with a given value
+		 updatedir       update an existing directory
+		 watch           watch a key for changes
+		 exec-watch      watch a key for changes and exec an executable
+		 member          member add, remove and list subcommands
+		 user            user add, grant and revoke subcommands
+		 role            role add, grant and revoke subcommands
+		 auth            overall auth controls
+		 help, h         Shows a list of commands or help for one command
+
+	
+	[root@master ~]# etcdctl -C http://master:2379 member list
+	ade526d28b1f92f7: name=etcd1 peerURLs=http://etcd1:2380 clientURLs=http://192.168.100.2:2379 isLeader=true
+
+	[root@master ~]# etcdctl -C http://master:2379 cluster-health
+	member ade526d28b1f92f7 is healthy: got healthy result from http://192.168.100.2:2379
+	cluster is healthy
+	
+etcd集群的启动方式支持三种机制
+	static(静态)：集群成员固定，初始化前直接指定成员主机URL即可；
+	etcd Discovery(etcd 发现)：集群成员地址不固定，此时可利用已经存在etcd集群来发现并创建一个新的集群，发现方式是etcd标识；
+	DNS Discovery(DNS 发现)：集群成员地址不固定，此时可利用已经存在etcd集群来发现并创建一个新的集群，发现方式是DNS SRV records；
