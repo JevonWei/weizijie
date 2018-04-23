@@ -1,0 +1,5 @@
+31475927+JevonWei@users.noreply.github.com
+
+dir(__builtins__)   列出所有的内置变量
+isinstance(a,str)   判断变量a是否为str字符类型，并返回bool值
+type(a)				显示变量a的数据类型

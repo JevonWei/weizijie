@@ -1,0 +1,39 @@
+docker volume 卷管理
+	docker的卷目录在宿主机的/var/lib/docker/volumes目录下与对应的各自的卷ID
+	
+	docker volume
+		Usage:	docker volume COMMAND
+		Options:
+			--help   Print usage
+
+		Commands:
+		create      Create a volume
+		inspect     Display detailed information on one or more volumes
+		ls          List volumes
+		rm          Remove one or more volumes
+		
+	删除容器同时删除卷，-v 删除容器的卷
+		[root@danran ~]# docker rm -v bbox1
+		bbox1
+
+	运行容器时手动指定宿主机卷目录与容器卷目录
+		宿主机新建卷目录
+		[root@danran ~]# mkdir /data/docker/volumes/html -pv
+		
+		运行容器，指定宿主机卷目录/data/docker/volumes/html对应容器/data/web/html目录
+		[root@danran ~]# docker run --name bbox1 -it -v /data/docker/volumes/html/:/data/web/html docker.io/busybox:latest
+		/ # ls /data/web/html/
+		/ # 
+		
+		在宿主机的/data/docker/volumes/html目录下新建index.html文件
+		[root@danran ~]# vim /data/docker/volumes/html/index.html
+		[root@danran ~]# cat /data/docker/volumes/html/index.html
+		<h1> New Page </h1>
+
+		再次查看容器中/data/web/html/目录的文件，发现生成了index.html文件，且与宿主机/data/docker/volumes/html/index.html文件内容一致
+		[root@danran ~]# docker run --name bbox1 -it -v /data/docker/volumes/html/:/data/web/html docker.io/busybox:latest
+		/ # ls /data/web/html/
+		index.html
+		/ # cat /data/web/html/index.html 
+		<h1> New Page </h1>
+		/ # 

@@ -1,0 +1,105 @@
+宿主机中设置源IP地址网络的映射,即将来自10.1.0.0/24网络的访问转接到172.16.0.67网络
+	sysctl -w net.ipv4.ip_forward=1
+	iptables -t nat -A POSTROUTING -s 10.1.0.0/24 -j SNAT --to-source 172.16.0.67
+
+LXC容器
+
+若需修改容器的下载路径，则编辑修改LXC容器模板文件的yum源仓库容器下载路径
+	vim /usr/share/lxc/templates/lxc-centos
+	
+安装LXC
+	yum -y install lxc lxc-templates
+查看lxc包含的文件列表
+	rpm -ql lxc   
+查看lxc-templates提供的lxc模板文件
+	rpm -ql lxc-templates
+
+查看系统是否支持使用lxc容器
+	lxc-checkconfig
+
+查看运行中某容器的信息
+	lxc-info NAME
+
+查看运行中LXC容器的资源占用状态
+	lxc-top
+
+连接到指定容器c1的控制台
+	lxc-console -n c1
+	
+监控c1容器所做的操作
+	lxc-monitor -n c1 
+	
+关闭指定容器
+	lxc-stop -n c1
+删除指定容器
+	lxc-destroy
+	
+从git下载克隆LXC-Web界面的程序
+	yum -y install git 
+	git clone https://github.com/lxc-webpanel/LXC-Web-Panel.git   
+	cd /LXC-Web-Panel/
+	yum -y install python-flask  安装python开发环境
+	python lwp.py
+	
+访问容器的web界面
+	http://172.16.0.67/5000
+	用户名密码：admin
+	
+	
+	
+创建lxc容器
+	lxc-create 
+		-n | --name：指明创建容器名称
+		-t：指明容器模板
+		-P：指明容器的安装存放路径，默认存放在/var/lib/lxc目录下
+
+根据lxc-centos模板文件创建c1容器
+	lxc-create -n c1 -t /usr/share/lxc/templates/lxc-centos   
+查看c1容器的根文件目录
+	ls /var/lib/lxc/c1/rootfs
+	chroot /var/lib/lxc/c1/rootfs   切换根目录到c1容器下
+	
+容器生成之后root用户密码存放文件为/var/lib/lxc/c1/tmp_root_pass
+修改c1容器的root用户密码
+	chroot /var/lib/lxc/c1/rootfs passwd    
+	
+
+安装lxc容器的桥接网络
+	yum -y install bridge-utils
+查看已有的桥接网络
+	brctl show    
+新建virbr0桥接网络	
+	brctl addbr virbr0
+激活virbr0桥接网络
+	ip link set dev virbr0 up 
+设置virbr0桥接网络的IP地址
+	ip addr add 10.1.0.1/24 dev virbr0
+	ifconfig
+	
+启动容器
+	lxc-start 
+		-d：直接启动为守护进程
+		-n：指定启动容器的名称
+
+启动c1容器，系统中必须有一个桥接网络，容器方可启动成功
+	lxc-start -n c1
+	
+设置c1容器的lo网卡的IP
+	ip link set lo up
+	ip link show
+	ip addr add 127.0.0.1/8 dev lo
+	ip addr add 10.1.0.2/24 dev eth0
+	ip a l 
+	
+ping宿主机中virbr0桥接网络的IP
+	ping 10.1.0.1   
+	
+c1容器添加网关,网关指向宿主机上的桥接网络地址
+	ip route default via 10.1.0.1    
+	ip route show
+
+c1容器中安装httpd服务
+	yum -y install yum-utils
+	yum -y insall httpd
+	
+	

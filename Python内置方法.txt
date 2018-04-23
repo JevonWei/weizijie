@@ -1,0 +1,208 @@
+Python内置方法			
+			
+capitalize()
+	将字符串首字母大写
+	>>> str
+	'danran'
+	>>> str.capitalize()
+	'Danran'
+
+casefold()
+	将整个字符串的所有字符变为小写
+	>>> str = "DANran"
+	>>> str.casefold()
+	'danran'
+
+center(width)
+	将字符串居中，并使用空格填充至长度width的新字符串中
+	>>> str.center(20)
+	'       DANran       '
+	
+count(sub[,start[,end]])
+	返回sub在字符串中出现的次数，start和end参数表示范围，可省略
+	eg：
+		>>> str
+		'DANran'
+		>>> str.count('a')
+		1
+encode(encoding='utf-8',error'strict') 
+	以encoding指定的编码格式对字符串进行编码
+	
+endswith(sub[,start[,end]])
+	检查字符串是否以sub子字符串结束，如果是返回True，否则返回False，start和end参数表示范围
+	eg：
+		>>> str
+		'DANran'
+		>>> str.endswith('a')
+		False
+		>>> str.endswith('n')
+		True
+	
+	
+expandtabs([tabsize=8])
+	把字符串中的tab符号(\t)转换为空格，如不指定参数，默认的空格数是tabsize=8.
+	eg：
+		>>> str2 = 'I\tlove\tdanran'
+		>>> str2
+		'I\tlove\tdanran'
+		>>> str2.expandtabs()
+		'I       love    danran'
+	
+find(sub[,start[,end]])
+	检测sub是否包含在字符串中，如果有则返回索引值，否则返回-1，start和end参数可选
+	eg：
+		>>> str
+		'DANran'
+		>>> str.find('A')
+		1
+		>>> str.find('a')
+		4
+		>>> str.find('s')
+		-1
+	
+index(sub[,start[,end]])
+	跟find方法一样，不过如果sub不在string中会产生一个异常
+	
+isalnum()
+	如果字符串至少有一个字符并且所有字符都是字母或数字则返回True，否则返回False
+
+isalpha()
+		如果字符串至少有一个字符并且所有字符都是字母则返回True，否则返回False
+
+isdecimal()
+	如果字符串只包含十进制数字则返回True，否则返回False
+	
+isdigit()
+	如果字符串只包含数字则返回True，否则返回False
+	
+
+islower()
+	如果字符串中至少包含一个区分大小写的字符，并且这些字符都是小写，则返回True，否则返回False
+
+isnumeric()
+	如果字符串中只包含数字字符，则返回True，否则返回False
+	
+isspace()
+	如果字符串中只包含空格，则返回True，否则返回False
+
+istitle()
+	如果字符串是标题化(所有的单词都是以大写开始，其余字母都是小写)，则返回True，否则返回False
+
+isupper()
+	如果字符串中至少包含一个区分大小写的字符，并且这些字符都是大写，则返回True，否则返回False
+	
+join(sub)
+	以字符串作为分隔符，插入到sub中所有的字符之间
+	eg：
+		>>> str
+		'DANran'
+		>>> str.join('12345')
+		'1DANran2DANran3DANran4DANran5'
+		
+ljust(width)
+	返回一个左对齐的字符串，并使用空格填充至长度为width的新字符串
+
+lower()
+	转换字符串中所有大写字符为小写
+
+lstrip()
+	去掉字符串左边的所有空格
+	eg：
+		>>> str2 = '    danran  '
+		>>> str2
+		'    danran  '
+		>>> str2.lstrip()
+		'danran  '
+		>>> str2.rstrip()
+		'    danran'
+
+rstrip()
+	去掉字符串末尾所有空格
+	eg：
+		>>> str2 = '    danran  '
+		>>> str2
+		'    danran  '
+		>>> str2.lstrip()
+		'danran  '
+		>>> str2.rstrip()
+		'    danran'
+				
+	
+partition(sub)
+	找到字符串sub，把字符串分成一个3元组(pre_sub,sub,fol_sub),如果字符串中不包含sub则返回('原字符串’ ,'' ,'')
+	eg：
+		>>> str3 = 'I Welcome you'
+		>>> str3.partition('co')
+		('I Wel', 'co', 'me you')
+	
+replace(old,new[,count])
+	把字符串中的old子字符串替换成new子字符串，如果count指定，则替换不超过count次
+	eg：	
+		>>> str3
+		'I Welcome you'
+		>>> str3.replace('you','YOU')
+		'I Welcome YOU'
+	
+rfind(sub[,start[,end]])
+	类似于find()方法，不过是从右边开始查找
+
+rindex(sub[,start[,end]])
+	类似于index()方法，从右边开始查找
+
+rjust(width)
+	返回一个右对齐的字符串，并使用空格填充至长度为width的新字符串
+
+rpartition(sub)
+	类似于partition()方法，不过是从右边开始查找
+	
+split(sep=None，maxsplit=-1)
+	不带参数默认是以空格为分隔符切片字符串，如果maxsplit参数有设置，则仅分割maxsplit个子字符串，返回切片后的子字符串拼接的列表
+	eg：
+		>>> str3
+		'I Welcome you'
+		>>> str3.split()
+		['I', 'Welcome', 'you']
+		>>> str3.split('o')
+		['I Welc', 'me y', 'u']
+		
+	
+splitlines(([keepends]))
+	按照‘\n’分隔，返回一个包含各行作为元素的列表，如果keepends参数指定，则返回keepends行
+
+startswith(prefix[,start[,end]])
+	指定字符串是否以prefix开头，是则返回True，否则返回False，start及end参数可指定检查范围
+
+strip([chars])
+	删除字符串前边和后边所有的空格，chars参数可以指定删除的字符，可选
+	
+swapcase()
+	翻转字符串中的大小写
+	eg：
+		>>> str
+		'DANran'
+		>>> str.swapcase()
+		'danRAN'
+		
+title()
+	返回标题化(所有的单词都是以大写开始，其余字母都是小写)的字符串
+	
+translate(table)
+	根据table的规则(可以由str.maketrans('a','b')定制)转换字符串中的字符
+	eg：将str字符串中的'n'转换为'F'
+		>>> str
+		'DANran'
+		>>> str.translate(str.maketrans('n','F'))
+		'DANraF'
+		>>> str.maketrans('n','F')
+		{110: 70}
+	
+upper()
+	转换字符串中的所有小写字符为大写
+	eg:
+		>>> str
+		'DANran'
+		>>> str.upper()
+		'DANRAN'
+	
+zfill(width)
+	返回长度为width的字符串，原字符串右对齐，前边用0填充

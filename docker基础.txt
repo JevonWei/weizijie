@@ -1,0 +1,245 @@
+配置镜像加速器
+	https://cr.console.aliyun.com/#/accelerator
+
+安装docker	
+	yum -y install docker
+	systemctl start docker
+	systemctl status docker
+	
+从官方仓库下载镜像
+	[root@danran yum.repos.d]# docker pull centos:latest
+	Trying to pull repository docker.io/library/centos ... 
+	latest: Pulling from docker.io/library/centos
+	af4b0a2388c6: Pull complete 
+	Digest: sha256:6247c7082d4c86c61b00f7f2e3edbf7f072a24aa8edc28b5b68b3de3101bc1ce
+	[root@danran yum.repos.d]# docker images
+	REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+	docker.io/busybox   latest              f6e427c148a7        3 days ago          1.146 MB
+	docker.io/centos    latest              ff426288ea90        7 weeks ago         207.2 MB
+
+
+运行容器
+	[root@danran yum.repos.d]# docker run --name bbox1 -it docker.io/busybox:latest
+	/ # ls
+	bin   dev   etc   home  proc  root  run   sys   tmp   usr   var
+
+显示所有的容器进程	
+	[root@danran ~]# docker ps -a
+	CONTAINER ID        IMAGE                      COMMAND             CREATED             STATUS                      PORTS               NAMES
+	65ee0d02f313        docker.io/busybox:latest   "sh"                21 minutes ago      Exited (0) 21 minutes ago     
+	
+	
+启动停止的容器
+	[root@danran ~]# docker start -a -i bbox1
+	/ # 
+
+显示正在运行的容器
+	[root@danran ~]# docker ps 
+	CONTAINER ID        IMAGE                      COMMAND             CREATED             STATUS              PORTS               NAMES
+	65ee0d02f313        docker.io/busybox:latest   "sh"                26 minutes ago      Up 25 seconds                           bbox1
+	
+运行容器并执行指定的命令
+	[root@danran ~]# docker run --name bbox3 -it docker.io/busybox:latest ifconfig
+	eth0      Link encap:Ethernet  HWaddr 02:42:AC:11:00:03  
+			  inet addr:172.17.0.3  Bcast:0.0.0.0  Mask:255.255.0.0
+			  inet6 addr: fe80::42:acff:fe11:3/64 Scope:Link
+			  UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+			  RX packets:1 errors:0 dropped:0 overruns:0 frame:0
+			  TX packets:2 errors:0 dropped:0 overruns:0 carrier:0
+			  collisions:0 txqueuelen:0 
+			  RX bytes:90 (90.0 B)  TX bytes:168 (168.0 B)
+
+	lo        Link encap:Local Loopback  
+			  inet addr:127.0.0.1  Mask:255.0.0.0
+			  inet6 addr: ::1/128 Scope:Host
+			  UP LOOPBACK RUNNING  MTU:65536  Metric:1
+			  RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+			  TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+			  collisions:0 txqueuelen:1 
+			  RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+启动容器，立即停止
+	[root@danran ~]# docker start bbox1
+	bbox1
+	[root@danran ~]# docker ps
+	CONTAINER ID        IMAGE                      COMMAND             CREATED             STATUS              PORTS               NAMES
+	65ee0d02f313        docker.io/busybox:latest   "sh"                34 minutes ago      Up 9 seconds 
+
+持久启动容器
+	[root@danran ~]# docker start -ai bbox1
+	/ # 
+	/ # ls
+	bin   dev   etc   home  proc  root  run   sys   tmp   usr   var
+	/ # exit
+	     
+删除容器
+	[root@danran ~]# docker ps -a
+	CONTAINER ID        IMAGE                      COMMAND             CREATED             STATUS                     PORTS               NAMES
+	bd5546d48e92        docker.io/busybox:latest   "ifconfig"          8 minutes ago       Exited (0) 8 minutes ago                       bbox3
+	e133038cb5fc        docker.io/busybox:latest   "ipconfig"          9 minutes ago       Created                                        bbox2
+	65ee0d02f313        docker.io/busybox:latest   "sh"                39 minutes ago      Up 5 minutes                                   bbox1
+	[root@danran ~]# docker rm bbox3
+	bbox3
+	[root@danran ~]# docker ps -a
+	CONTAINER ID        IMAGE                      COMMAND             CREATED             STATUS              PORTS               NAMES
+	e133038cb5fc        docker.io/busybox:latest   "ipconfig"          9 minutes ago       Created                                 bbox2
+	65ee0d02f313        docker.io/busybox:latest   "sh"                40 minutes ago      Up 5 minutes                            bbox1
+
+删除镜像
+	[root@danran ~]# docker images
+	REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+	docker.io/busybox   latest              f6e427c148a7        3 days ago          1.146 MB
+	docker.io/centos    latest              ff426288ea90        7 weeks ago         207.2 MB
+
+	[root@danran ~]# docker rmi docker.io/busybox:latest
+	
+容器运行后直接删除
+	[root@danran ~]# docker run --rm --name bbox3 docker.io/busybox:latest ifconfig
+	eth0      Link encap:Ethernet  HWaddr 02:42:AC:11:00:03  
+			  inet addr:172.17.0.3  Bcast:0.0.0.0  Mask:255.255.0.0
+			  inet6 addr: fe80::42:acff:fe11:3/64 Scope:Link
+			  UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+			  RX packets:1 errors:0 dropped:0 overruns:0 frame:0
+			  TX packets:1 errors:0 dropped:0 overruns:0 carrier:0
+			  collisions:0 txqueuelen:0 
+			  RX bytes:90 (90.0 B)  TX bytes:90 (90.0 B)
+
+	lo        Link encap:Local Loopback  
+			  inet addr:127.0.0.1  Mask:255.0.0.0
+			  inet6 addr: ::1/128 Scope:Host
+			  UP LOOPBACK RUNNING  MTU:65536  Metric:1
+			  RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+			  TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+			  collisions:0 txqueuelen:1 
+			  RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+	[root@danran ~]# docker ps -a
+	CONTAINER ID        IMAGE                      COMMAND             CREATED             STATUS              PORTS               NAMES
+	65ee0d02f313        docker.io/busybox:latest   "sh"                43 minutes ago      Up 9 minutes                            bbox1
+
+探测容器内部的详细信息
+	root@danran ~]# docker inspect bbox1
+	
+镜像打包
+	docker save
+		Usage:	docker save [OPTIONS] IMAGE [IMAGE...]
+		Options:
+			--help            Print usage
+			-o, --output string   Write to a file, instead of STDOUT
+	
+	将官方仓库的centos镜像打包为/root/centos.tar
+	[root@danran ~]# docker save -o /root/centos.tar centos:latest
+	[root@danran ~]# ls
+	anaconda-ks.cfg  centos.tar
+
+装入镜像打包文件
+	docker load 
+		Usage:	docker load [OPTIONS]
+		Options:
+			--help           Print usage
+			-i, --input string   Read from tar archive file, instead of STDIN
+			-q, --quiet          Suppress the load output
+			
+	将centos.tar镜像打包文件载入系统		
+	[root@danran ~]# docker load -i /root/centos.tar 
+	Loaded image: centos:latest		
+	[root@danran ~]# docker images
+	REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+	centos              latest              ff426288ea90        8 weeks ago         207.2 MB
+
+镜像标签
+	docker tag
+		Usage:	docker tag IMAGE[:TAG] IMAGE[:TAG]
+	
+	将centos:latest标签重打为centos:1.0
+	[root@danran ~]# docker images
+	REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+	centos              1.0                 ff426288ea90        8 weeks ago         207.2 MB
+	centos              latest              ff426288ea90        8 weeks ago         207.2 MB
+
+	将docker.io上的busybox镜像设置标签为registry.cn-hangzhou.aliyuncs.com/jevonwei/test:bbox-0.1
+	[root@danran ~]# docker tag docker.io/busybox:latest registry.cn-hangzhou.aliyuncs.com/jevonwei/test:bbox-0.1
+	[root@danran ~]# docker images
+	REPOSITORY                                        TAG                 IMAGE ID            CREATED             SIZE
+	docker.io/busybox                                 latest              f6e427c148a7        5 days ago          1.146 MB
+	registry.cn-hangzhou.aliyuncs.com/jevonwei/test   bbox-0.1            f6e427c148a7        5 days ago          1.146 MB
+      
+push镜像
+	docker push 
+		Usage:	docker push [OPTIONS] NAME[:TAG]
+		Options:
+			--disable-content-trust   Skip image verification (default true)
+	
+	将指定的镜像push推送到镜像仓库，可在镜像仓库中查看到push的镜像
+	[root@danran ~]# docker push registry.cn-hangzhou.aliyuncs.com/jevonwei/test:bbox-0.1
+
+基于运行中的容器制作镜像，push到远程仓库
+	docker commit
+		Usage:	docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
+		Options:
+			-a, --author string    Author (e.g., "John Hannibal Smith <hannibal@a-team.com>")  标记字符串信息
+			-c, --change value     Apply Dockerfile instruction to the created image (default [])  修改镜像默认的运行命令
+				--help             Print usage
+			-m, --message string   Commit message
+			-p, --pause            Pause container during commit (default true)   暂停容器
+	
+	基于运行中的bbox1容器制作镜像
+	
+	运行bbox1容器
+		[root@danran ~]# docker run --name bbox1 -it docker.io/busybox:latest
+		/ # mkdir /date/web/html -pv
+		created directory: '/date/'
+		created directory: '/date/web/'
+		created directory: '/date/web/html'
+		/ # vi /date/web/html/index.html
+		/ # cat /date/web/html/index.html 
+		<h1> Test Page @docker container</h1>
+		/ # 
+
+	确认bbox1容器正在运行
+		[root@danran ~]# docker ps
+		CONTAINER ID        IMAGE                      COMMAND             CREATED             STATUS              PORTS               NAMES
+		5cb5ae8125c5        docker.io/busybox:latest   "sh"                6 minutes ago       Up 6 minutes                            bbox1
+	
+	根据bbox1容器制作镜像registry.cn-hangzhou.aliyuncs.com/jevonwei/test:data，标签为data
+		[root@danran ~]# docker commit -p -a "jevonwei" bbox1 registry.cn-hangzhou.aliyuncs.com/jevonwei/test:data
+		sha256:a9b7ac7922957b192bae854cf8ffd4796e590559ec999a100d94caf2a1b5168c
+		[root@danran ~]# docker images
+		REPOSITORY                                        TAG                 IMAGE ID            CREATED             SIZE
+		registry.cn-hangzhou.aliyuncs.com/jevonwei/test   data                a9b7ac792295        9 seconds ago       1.146 MB
+		
+	将镜像registry.cn-hangzhou.aliyuncs.com/jevonwei/test:data推送到远程仓库registry.cn-hangzhou.aliyuncs.com/jevonwei
+		[root@danran ~]# docker push registry.cn-hangzhou.aliyuncs.com/jevonwei/test:data
+		
+commit提交镜像并修改默认运行命令
+	由bbox1容器提交新的镜像，并修改默认运行命令为httpd，-f为指定httpd命令为前台运行，-h指定家目录为/data/web/html
+	[root@danran ~]# docker commit -p -a "jevonwei"  -c 'CMD ["httpd","-f","-h /data/web/html"]' bbox1 registry.cn-hangzhou.aliyuncs.com/jevonwei/test:httpd
+	sha256:5da3c5a7fcf8b6466f9a60d3b770c5980f9f4e7f92adfbda63a1ef82b2200eb9
+
+	[root@danran ~]# docker images
+	REPOSITORY                                        TAG                 IMAGE ID            CREATED              SIZE
+	registry.cn-hangzhou.aliyuncs.com/jevonwei/test   httpd               5da3c5a7fcf8        About a minute ago   1.146 MB
+
+	基于新的镜像运行容器
+	[root@danran ~]# docker run -it --name httpd registry.cn-hangzhou.aliyuncs.com/jevonwei/test:httpd
+	
+docker exec 
+	在运行的容器中额外执行指定的命令
+	
+	docker exec
+		Usage:	docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+		
+		Run a command in a running container
+			-d, --detach         Detached mode: run command in the background
+			--detach-keys        Override the key sequence for detaching a container
+			--help               Print usage
+			-i, --interactive    Keep STDIN open even if not attached
+			--privileged         Give extended privileges to the command
+			-t, --tty            Allocate a pseudo-TTY
+			-u, --user           Username or UID (format: <name|uid>[:<group|gid>])
+	
+	运行ls命令查看bbox1容器中/data目录下的文件
+		[root@danran ~]# docker exec bbox1 ls /data
+		web
+
+		
