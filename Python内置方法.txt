@@ -1,5 +1,13 @@
-Python内置方法			
-			
+Python内置方法	
+
+format()
+	将字符串格式化输出
+	eg：
+		>>> "{0} love {1} {2}".format("I","Wolcome","You")
+		'I love Wolcome You'
+		>>> "{a} love {b} {c}".format(a="I",b="Wolcome",c="You")
+		'I love Wolcome You'
+					
 capitalize()
 	将字符串首字母大写
 	>>> str
