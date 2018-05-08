@@ -1,0 +1,1260 @@
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+
+commands模块(Python2)
+	此内置模块包含三个函数，使用help(commands)可以查看到
+	
+	commands.getstatusoutput(cmd)返回一个元组(status,output)
+		status代表的shell命令的返回状态，如果成功返回0；output是shell的返回结果
+			>>> import commands
+			>>> status, output = commands.getstatusoutput("ls")
+			>>> print status
+			0
+			>>> print output
+			atom:
+			bookstore
+			cookie.py~
+		
+	commands.getoutput(cmd)
+		判断shell命令的输出内容
+			>>> print commands.getoutput("ls")
+			atom:
+			bookstore
+			cookie.py~
+			
+	commands.getstatus(file)  ##现已被弃用
+		返回ls -ld file执行的结果
+		
+subprocess模块
+	subprocess通过子进程来执行外部指令，并通过input/output/error管道，获取子进程的执行的返回信息。
+	
+	等同于commands模块的三个函数使用
+		>>> subprocess.getstatusoutput('pwd')
+		(0, '/home/ronny')
+		>>> subprocess.getoutput('pwd')
+		'/home/ronny'
+		>>> subprocess.getstatus('pwd')
+		
+	除getstatusoutput、getoutput、getstatus三个函数外，还有以下函数
+		1. call()用法
+			subprocess.call():执行命令，并返回执行状态，其中shell参数为False时，命令需要通过列表的方式传入，当shell为True时，可直接传入命令。
+			eg：
+				>>> a = subprocess.call(['df','-hT'],shell=False)
+				Filesystem    Type    Size  Used Avail Use% Mounted on
+				/dev/sda2     ext4     94G   64G   26G  72% /
+				tmpfs        tmpfs    2.8G     0  2.8G   0% /dev/shm
+				/dev/sda1     ext4    976M   56M  853M   7% /boot
+				
+				>>> a = subprocess.call('df -hT',shell=True)
+				Filesystem    Type    Size  Used Avail Use% Mounted on
+				/dev/sda2     ext4     94G   64G   26G  72% /
+				tmpfs        tmpfs    2.8G     0  2.8G   0% /dev/shm
+				/dev/sda1     ext4    976M   56M  853M   7% /boot
+				
+				>>> print a
+				0
+			
+		2. check_call()用法
+			用法与subprocess.call()类似，区别是当返回值不为0时，直接抛出异常。
+				eg：
+					>>> a = subprocess.check_call('df -hT',shell=True)
+					Filesystem    Type    Size  Used Avail Use% Mounted on
+					/dev/sda2     ext4     94G   64G   26G  72% /
+					tmpfs        tmpfs    2.8G     0  2.8G   0% /dev/shm
+					/dev/sda1     ext4    976M   56M  853M   7% /boot
+					>>> print a
+					0
+					>>> a = subprocess.check_call('dfdsf',shell=True)
+					/bin/sh: dfdsf: command not found
+					Traceback (most recent call last):
+					  File "<stdin>", line 1, in <module>
+					  File "/usr/lib64/python2.6/subprocess.py", line 502, in check_call
+					    raise CalledProcessError(retcode, cmd)
+					subprocess.CalledProcessError: Command 'dfdsf' returned non-zero exit status 127
+					
+		3. check.output()	
+			用法与上面两个方法类似，区别是，如果当返回值为0时，直接返回输出结果，如果返回值不为0，直接抛出异常。需要说明的是，该方法在python3.x中才有。
+			
+		4. subprocess.Popen()
+			在一些复杂场景中，我们需要将一个进程的执行输出作为另一个进程的输入。在另一些场景中，我们需要先进入到某个输入环境，然后再执行一系列的指令等。这个时候我们就需要使用到suprocess的Popen()方法。该方法有以下参数：
+				arge:shell命令。可以是字符串，或者序列类型，如list,tuple。
+				bufsize:缓冲区大小，可不用关心
+				stdin,stdout,stderr:分别表示程序的标准输入，标准输出及标准错误输出
+				shell:与上面方法中用法相同
+				cwd:用于设置子进程的当前目录
+				env:用于指定子进程的环境变量，如果env=None，则默认从父进程继承环境变量
+				universal_newlines:不通系统的换行符不同，当该参数设定为true时，则表示使用\n作为换行符
+				
+			eg
+				在/root/下创建一个test目录
+					>>> a = subprocess.Popen('mkdir test',shell=True,cwd='/root')
+					
+				使用python执行几个命令(stdin=subprocess.PIPE为将stdin定义为PIPE管道类型)
+					import subprocess
+
+					obj = subprocess.Popen(["python"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+					obj.stdin.write('print 1 \n')
+					obj.stdin.write('print 2 \n')
+					obj.stdin.write('print 3 \n')
+					obj.stdin.write('print 4 \n')
+					obj.stdin.close()
+					
+					cmd_out = obj.stdout.read()
+					obj.stdout.close()
+					cmd_error = obj.stderr.read()
+					obj.stderr.close()
+					
+					print cmd_out
+					print cmd_error
+					
+				将一个子进程的输出，作为另一个子进程的输入
+					import subprocess
+					child1 = subprocess.Popen(["cat","/etc/passwd"], stdout=subprocess.PIPE)
+					child2 = subprocess.Popen(["grep","0:0"],stdin=child1.stdout, stdout=subprocess.PIPE)
+					out = child2.communicate()
+				
+		其他方法
+			import subprocess
+			child = subprocess.Popen('sleep 60',shell=True,stdout=subprocess.PIPE)
+			child.poll()    				#检查子进程状态
+			child.kill()     				#终止子进程
+			child.send_signal()    	#向子进程发送信号
+			child.terminate()   		#终止子进程
+			Popen.wait()						#等待子进程结束。设置并返回returncode属性
+			Popen.communicate(input=None)		#与子进程进行交互。向stdin发送数据，或从stdout和stderr中读取数据。可选参数input指定发送到子进程的参数。Communicate()返回一个元组：(stdoutdata, stderrdata)。注意：如果希望通过进程的stdin向其发送数据，在创建Popen对象的时候，参数stdin必须被设置为PIPE。同样，如果希望从stdout和stderr获取数据，必须将stdout和stderr设置为PIPE。
+			Popen.pid()											#获取子进程的进程ID。
+			Popen.returncode()							#获取进程的返回值。如果进程还没有结束，返回None。
+			
+
+re模块
+	直接调用此模块来实现正则匹配。
+	import re
+
+	一、普通字符和元字符
+		1.普通字符：匹配自身
+				eg：
+					>>> import re
+					>>> a = re.findall("ab","abcdefg")
+					>>> print (a)
+					['ab']
+					>>> b = re.findall("ab","ABCDabcdefg")
+					>>> print (b)
+					['ab']
+	
+		2. ^元字符
+			字符串开始位置与匹配规则符合就匹配，否则不匹配
+			匹配字符串开头。在多行模式中匹配每一行的开头
+			^元字符如果写到[]字符集里就是反取
+			eg：
+				>>> c = re.findall("^ab","abcdefg")
+				>>> print (c)
+				['ab']
+	
+		3. [^a-z]反取
+			匹配出除字符外的字符，^元字符如果写到字符集里就是反取
+			eg:
+				>>> d = re.findall("[^a-z]","a12bc34de5fg$#@")
+				>>> print (d)
+				['1', '2', '3', '4', '5', '$', '#', '@']
+		
+		4. $字符
+			字符串结束位置与匹配规则符合就匹配，否则不匹配
+			匹配字符串末尾，在多行模式中匹配每一行的末尾
+			eg:
+				>>> d = re.findall("de$","a12bc34de")
+				>>> print (d)
+				['de']
+				
+		5. . 任意字符
+			匹配任意一个字符(除换行符"\n"外) (在DOTALL模式中也能匹配换行符)
+			eg:
+				 >>> e = re.findall("a.c","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['abc']
+		
+		6. *字符
+			需要字符串里完全符合
+			匹配前一个字符0次或多次，贪婪匹配
+			eg:
+				>>> d = re.findall("ab*","a12abc34deabbbbcdaab")
+				>>> print (d)
+				['a', 'ab', 'abbbb', 'a', 'ab']
+	
+		7. +字符
+			匹配前一个字符1次或多次，贪婪匹配
+			eg:
+				>>> d = re.findall("ab+","a12abc34deabbbbcdaab")
+				>>> print (d)
+				['ab', 'abbbb', 'ab']
+	
+		8. ?元字符
+			匹配一个字符0次或1次，防止贪婪匹配
+			eg:
+				>>> d = re.findall("ab?","a12abc34deabbbbcdaab")
+				>>> e = re.findall("ab*","a12abc34deabbbbcdaab")
+				>>> print (d)
+				['a', 'ab', 'ab', 'a', 'ab']
+				>>> print (e)
+				['a', 'ab', 'abbbb', 'a', 'ab']
+				
+		9. {} 元字符，范围
+			{m} 匹配前一个字符m次
+			{m,n}	匹配前一个字符m至n次
+			{m,}	则匹配m至无限次
+			
+			{0,}匹配前一个字符0或多次,等同于*元字符
+			{+,}匹配前一个字符1次或无限次,等同于+元字符
+			{0,1}匹配前一个字符0次或1次,等同于?元字符
+	
+			eg:
+				>>> e = re.findall("ab{3}","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['abbb']
+				>>> e = re.findall("ab{0,1}","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['a', 'ab', 'ab', 'a', 'ab']
+				>>> e = re.findall("ab{1,}","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['ab', 'abbbb', 'ab']
+				
+		10. [] 元字符,字符集
+			字符集，对应的位置可以是字符集中任意字符。字符集中的字符可以逐个列出，也可以给出范围，如[abc]或[a-c]。[^abc]表示取反，即非abc。
+			所有特殊字符在字符集中都失去其原有的特殊含义。用\反斜杠转义恢复特殊字符的特殊含义。
+			eg:
+				>>> e = re.findall("[a-z]","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['a', 'a', 'b', 'c', 'd', 'e', 'a', 'b', 'b', 'b', 'b', 'c', 'd', 'a', 'a', 'b']
+				>>> e = re.findall("[1-9]","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['1', '2', '3', '4']
+				>>> e = re.findall("[^1-9]","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['a', 'a', 'b', 'c', 'd', 'e', 'a', 'b', 'b', 'b', 'b', 'c', 'd', 'a', 'a', 'b']
+		
+		11. [^] 非，反取
+			匹配出除[^]里面的字符,^元字符如果写到字符集里就是反取
+			eg:
+				>>> e = re.findall("[1-9]","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['1', '2', '3', '4']
+				>>> e = re.findall("[^1-9]","a12abc34deabbbbcdaab")
+				>>> print (e)
+				['a', 'a', 'b', 'c', 'd', 'e', 'a', 'b', 'b', 'b', 'b', 'c', 'd', 'a', 'a', 'b']
+		
+		
+		12. | 或
+			匹配 | 左右表达式任意一个，从左到有匹配，如果|没有包括在()中，则它的范围是整个正则表达式
+			| 或，或就是前后其中一个符合就匹配
+			eg:
+					>>> e = re.findall("a|c","a12abc34deabbbbcdaab")
+					>>> print (e)
+					['a', 'a', 'c', 'a', 'c', 'a', 'a']
+			
+		13. () 分组匹配
+			被()括起来的表达式将作为整体分组，从表达式左边开始没遇到一个分组的左括号"(",编号+1
+			分组表达式作为一个整体，可以后接数量词。表达式中的|仅在该组中有效。
+			如果()后面跟的是特殊元字符如 (adc)，那么*控制的前导字符就是()里的整体内容，不再是前导一个字符
+			eg:
+				>>> e = re.findall("(ab){2}","abab12abc34deabbbbcd12345aab")
+				>>> print (e)
+				['ab']
+				>>> e = re.search("(ab){2}","abab12abc34deabbbbcd12345aab")
+				>>> print (e)
+				<_sre.SRE_Match object; span=(0, 4), match='abab'>
+				>>> print (e.group())
+				abab
+		
+				>>> e = re.search("ab(\d+)","abab12abc34deabbbbcd12345aab")
+				>>> print (e.group())
+				ab12
+				
+		14. \ 反斜杠作用
+			反斜杠后边跟元字符去除特殊功能:(即将特殊字符转义成普通字符)
+			反斜杠后边跟普通字符实现特殊功能:(即预定义字符)
+			引用序号对应的字组所匹配的字符串。
+			eg：
+				>>> a=re.search(r'(tina)(fei)haha\1','tinafeihahafei tinafeihahatina').group()
+				>>> print (a)
+				tinafeihahatina
+				>>> a=re.search(r'(tina)(fei)haha\2','tinafeihahafei tinafeihahatina').group()
+				>>> print (a)
+				tinafeihahafei
+				
+			
+				
+		15. r原生字符
+			将在python里有特殊意义的字符如\b，转换成原生字符(就是去除它在python的特殊意义)，不然会给正则表达式有冲突，为了避免这种冲突可以在规则前加原始字符r
+			eg:
+					>>> e = re.findall(r"a\b","aba\b12abc34deabbbb\bcd12345aab")
+					>>> print (e)
+					['a']
+					>>> e = re.findall("a\b","aba\b12abc34deabbbb\bcd12345aab")
+					>>> print (e)
+					['a\x08']
+	
+	二、预定义字符集(可在字符集[...]中)
+		1. \d 数字[0-9]
+			匹配任何十进制数，相当于[0-9]
+			eg:
+				>>> e = re.findall("\d","aba12abc34deabbbbcd12345aab")
+				>>> print (e)
+				['1', '2', '3', '4', '1', '2', '3', '4', '5']		
+
+		2. \d+ 
+			匹配一位或多位十进制数
+			eg:
+				>>> e = re.findall("\d+","aba12abc34deabbbbcd12345aab")
+				>>> print (e)
+				['12', '34', '12345']
+
+		3. \D 非数字[^\d]
+			匹配任何非数字字符，相当于类[^0-9]
+			eg:
+				>>> e = re.findall("\D","aba12abc34deabbbbcd12345aab")
+				>>> print (e)
+				['a', 'b', 'a', 'a', 'b', 'c', 'd', 'e', 'a', 'b', 'b', 'b', 'b', 'c', 'd', 'a', 'a', 'b']
+		
+		4. \D+ 
+			匹配一位或多位非数字字符
+			eg:
+				>>> e = re.findall("\D+","aba12abc34deabbbbcd12345aab")
+				>>> print (e)
+				['aba', 'abc', 'deabbbbcd', 'aab']
+		
+		5. \s 匹配任何空白字符 [<空格>\t\r\n\f\v]
+			匹配任何空白字符，它相当于类[\t\n\r\f\v]
+			eg:
+				>>> e = re.findall("\s","aba12abc3 4d   ea bbbbcd12345\na\rab")
+				>>> print (e)
+				[' ', ' ', ' ', ' ', ' ', '\n', '\r']
+		
+		5. \S 匹配任何非空白字符 [^\s]
+			匹配任何空白字符，它相当于类[^\t\n\r\f\v]
+			eg:
+				>>> e = re.findall("\S","aba12abc3 4d   ea bbbbcd12345aab")
+				>>> print (e)
+				['a', 'b', 'a', '1', '2', 'a', 'b', 'c', '3', '4', 'd', 'e', 'a', 'b', 'b', 'b', 'b', 'c', 'd', '1', '2', '3', '4', '5', 'a', 'a', 'b']
+			
+		6. \w 
+			匹配包括下划线在内的任意字符 [A-Za-z0-9_]
+			eg:
+				>>> a = re.findall('\w',"https://www.JevonWei.com/")
+				>>> print (a)
+				['h', 't', 't', 'p', 's', 'w', 'w', 'w', 'J', 'e', 'v', 'o', 'n', 'W', 'e', 'i', 'c', 'o', 'm']
+				>>> a = re.findall('\w+',"https://www.JevonWei.com/")
+				>>> print (a)
+				['https', 'www', 'JevonWei', 'com']
+				
+		7. \W [^\w]
+			匹配非任何字母数字字符包括下划线在内，它相当于类[^a-zA-Z0-9_]
+			eg:
+				>>> a = re.findall('\W',"https://www.JevonWei.com/")
+				>>> print (a)
+				[':', '/', '/', '.', '.', '/']
+				>>> a = re.findall('\W+',"https://www.JevonWei.com/")
+				>>> print (a)
+				['://', '.', '.', '/']
+				
+		8. \A 匹配字符串开头。同^
+			eg:
+				>>> e = re.findall("\Aabc","aba12abc3 4d   ea bbbbcd12345aab")
+				>>> print (e)
+				[]
+				>>> e = re.findall("\Aab","aba12abc3 4d   ea bbbbcd12345aab")
+				>>> print (e)
+				['ab']
+				
+		9. \Z 仅匹配字符串结尾，同$
+			eg:
+				>>> e = re.findall("[a-z]{3}\Z","aba12abce\nbbbbcd12345aab")
+				>>> print (e)
+				['aab']
+
+		10. \b
+			匹配\w和\W之间,即匹配单词边界匹配一个单词边界,也就是指单词和空格间的位置。
+			例如,'er\b' 可以匹配"never"中的'er',但不能匹配"verb"中的'er'。			
+			eg:
+				>>> w = re.findall(r'\btina\b','aaatian### tina@@@@')
+				>>> print (w)
+				['tina']
+				>>> w = re.findall(r'\btina\b','aaatian### tin@@@@')
+				>>> print (w)
+				[]
+				>>> w = re.findall(r'\btina','tia tina')
+				>>> print (w)
+				['tina']
+				>>> w = re.findall(r'tina\b','tia tina')
+				>>> print (w)
+				['tina']
+				
+	三、特殊分组用法
+		1. (?P<name>)：分组，除了原有的编号外再指定一个额外的别名
+			eg:
+				(?P<id>abc){2} ==> abcabc
+		
+		2. (?P=name):引用别名为<name>的分组匹配到字符串
+			eg:
+					(?P<id>\d)abc(?P=id)  (\d)abc\1
+		
+		3. \<number>:引用编号为<number>的分组匹配到字符串	
+			eg:
+				(\d)abc\1  ==> (\d)abc\1
+				
+				
+	四、常用功能函数
+		1. compile()
+			编译正则表达式模式，返回一个对象的模式。
+			
+			re.compile(pattern,flags=0)
+				# pattern: 编译时用的表达式字符串。
+				# flags: 编译标志位，用于修改正则表达式的匹配方式，如：是否区分大小写，多行匹配等。
+				常用的flags有：
+					re.S(DOTALL):	使.匹配包括换行在内的所有字符
+					re.I(IGNORECASE): 使匹配对大小写不敏感
+					re.L(LOCALE): 做本地化识别（locale-aware)匹配，法语等
+					re.M(MULTILINE): 多行匹配，影响^和$
+					re.X(VERBOSE): 该标志通过给予更灵活的格式以便将正则表达式写得更易于理解
+					re.U: 根据Unicode字符集解析字符，这个标志影响\w,\W,\b,\B
+				
+			eg:
+				>>> t = "Tina is a good girl, she is cool, clever, and so oon..."
+				>>> r = re.compile(r'\w*oo\w*')
+				>>> print(r.findall(t))
+				['good', 'cool', 'oon']	
+			
+		2. match()
+			match，从头匹配一个符合规则的字符串，从起始位置开始匹配，匹配成功返回一个对象，未匹配成功返回None
+			match(pattern, string, flags=0)
+				# pattern： 正则模型
+				# string：	要匹配的字符串
+				# falgs： 	匹配模式
+		
+			eg:
+				>>> origin = "Hello egon bcd egon lge egon acd 19"
+				
+				# 无分组
+				>>> r = re.match("h\w+", origin,re.I)
+				>>> print(r.group())
+				hello
+				>>> print(r.groups())
+				()
+				>>> print(r.groupdict())
+				{}
+			
+				# 有分组
+				>>> r = re.match("h(\w+)", origin)
+				>>> print(r.group())
+				hello
+				>>> print(r.groups())
+				('ello',)
+				>>> print(r.groupdict())
+				{}
+		
+				# 有两个分组定义了key
+				>>> r = re.match("(?P<n1>h)(?P<n2>\w+)", origin)
+				>>> print(r.group())
+				hello
+				>>> print(r.groups())
+				('h', 'ello')
+				>>> print(r.groupdict())
+				{'n1': 'h', 'n2': 'ello'}
+				?P<n1> 	#?P<>定义组里匹配内容的key(键)，<>里面写key名称，值就是匹配到的内容(只对正则函数返回对象的有用)
+			
+			取出匹配对象方法
+				只对正则函数返回对象的有用
+				group() 		#获取匹配到的所有结果，不管有没有分组将匹配到的全部拿出来，有参取匹配到的第几个如2
+				groups() 		#获取模型中匹配到的分组结果，只拿出匹配到的字符串中分组部分的结果
+				groupdict() #获取模型中匹配到的分组结果，只拿出匹配到的字符串中分组部分定义了key的组结果
+			
+		3. search() 
+			search,浏览全部字符串，匹配第一符合规则的字符串，浏览整个字符串去匹配第一个，未匹配成功返回None
+			search(pattern, string, flags=0)
+				# pattern： 正则模型
+				# string： 	要匹配的字符串
+				# falgs： 	匹配模式
+			
+			eg:
+				# 无分组
+				>>> origin = "hello alex bcd alex lge alex acd 19"
+				>>> r = re.search("a\w+", origin)
+				>>> print(r.group())    # 获取匹配到的所有结果，不管有没有分组将匹配到的全部拿出来
+				alex
+				>>> print(r.groups())   # 获取模型中匹配到的分组结果，只拿出匹配到的字符串中分组部分的结果
+				()
+				>>> print(r.groupdict())  # 获取模型中匹配到的分组结果，只拿出匹配到的字符串中分组部分定义了key的组结果
+				{}
+				
+				# 有分组
+				>>> origin = "hello alex bcd alex lge alex acd 19"
+				>>> r = re.search("a(\w+).*(\d)", origin)
+				>>> print(r.group())
+				alex bcd alex lge alex acd 19
+				>>> print(r.groups())
+				('lex', '9')
+				>>> print(r.groupdict())
+				{}
+			
+				# 有两个分组定义了key
+				>>> r = re.search("a(?P<n1>\w+).*(?P<n2>\d)", origin)
+				>>> print(r.group())
+				alex bcd alex lge alex acd 19
+				>>> print(r.groups())
+				('lex', '9')
+				>>> print(r.groupdict())
+				{'n1': 'lex', 'n2': '9'}
+					
+			注：match和search一旦匹配成功，就是一个match object对象，而match object对象有以下方法：
+				group() 返回被RE匹配的字符串
+				start() 返回匹配开始的位置
+				end() 	返回匹配结束的位置
+				span() 	返回一个元组包含匹配(开始,结束)的位置
+				group() 返回re整体匹配的字符串，可以一次输入多个组号，对应组号匹配的字符串。
+			
+				a. group(): 返回re整体匹配的字符串，
+				b. group(n,m): 返回组号为n，m所匹配的字符串，如果组号不存在，则返回indexError异常
+				c. groups() :groups()方法返回一个包含正则表达式中所有小组字符串的元组，从1到所含的小组号，通常groups()不需要参数，返回一个元组，元组中的元就是正则表达式中定义的组。 
+				
+				eg:
+					>>> a = "123abc456"
+					>>> print(re.search("([0-9]*)([a-z]*)([0-9]*)",a).group(0))
+					123abc456
+					>>> print(re.search("([0-9]*)([a-z]*)([0-9]*)",a).group(1))
+					123
+					>>> print(re.search("([0-9]*)([a-z]*)([0-9]*)",a).group(2))
+					abc
+					>>> print(re.search("([0-9]*)([a-z]*)([0-9]*)",a).group(3))
+					456
+					>>> print(re.search("([0-9]*)([a-z]*)([0-9]*)",a).start(3))
+					6
+			
+		4. findall()
+			findall(pattern, string, flags=0)
+				# pattern： 正则模型
+				# string： 	要匹配的字符串
+				# falgs： 	匹配模式
+			
+			浏览全部字符串，匹配所有合规则的字符串，匹配到的字符串放到一个列表中，未匹配成功返回空列表
+				
+				注意：一旦匹配成，再次匹配，是从前一次匹配成功的，后面一位开始的，也可以理解为匹配成功的字符串，不在参与下次匹配
+				eg:
+					>>> r = re.findall("\d+\w\d+", "a2b3c4d5")
+					>>> print (r)
+					['2b3', '4d5']
+			
+				注意：如果没写匹配规则，也就是空规则，返回的是一个比原始字符串多一位的，空字符串列表
+				eg：
+					>>> r = re.findall("","qwerttyasdfgg")
+					>>> print (r)
+					['', '', '', '', '', '', '', '', '', '', '', '', '', '']
+			
+				注意：正则匹配到空字符的情况，如果规则里只有一个组，而组后面是*就表示组里的内容可以是0个或者多个，这样组里就有了两个意思，一个意思是匹配组里的内容，二个意思是匹配组里0内容（即是空白）所以尽量避免用*否则会有可能匹配出空字符串
+				
+				注意：正则只拿组里最后一位，如果规则里只有一个组，匹配到的字符串里在拿组内容是，拿的是匹配到的内容最后一位
+				eg:
+					>>> origin = "hello alex bcd alex lge alex acd 19"
+					>>> r = re.findall("(a)*", origin)
+					>>> print (r)
+					['', '', '', '', '', '', 'a', '', '', '', '', '', '', '', '', 'a', '', '', '', '', '', '', '', '', 'a', '', '', '', '', 'a', '', '', '', '', '', '']
+					
+				
+				无分组:匹配所有合规则的字符串，匹配到的字符串放到一个列表中
+				eg:
+					>>> origin = "hello alex bcd alex lge alex acd 19"
+					>>> r = re.findall("a\w+", origin)
+					>>> print (r)
+					['alex', 'alex', 'alex', 'acd']
+					
+				有分组:只将匹配到的字符串里，组的部分放到列表里返回，相当于groups()方法
+				eg:
+					>>> origin = "hello alex bcd alex lge alex acd 19"
+					>>> r = re.findall("a(\w+)", origin)
+					>>> print (r)
+					['lex', 'lex', 'lex', 'cd']
+					
+				多个分组：只将匹配到的字符串里组的部分放到一个元组中，最后将所有元组放到一个列表里返回
+				相当于在group()结果里再将组的部分分别拿出来放入一个元组，最后将所有元组放入一个列表返回
+				eg:
+					>>> origin = "hello alex bcd alex lge alex acd 19"
+					>>> r = re.findall("(a)(\w+)", origin)
+					>>> print (r)
+					[('a', 'lex'), ('a', 'lex'), ('a', 'lex'), ('a', 'cd')]
+					
+				分组中有分组：只将匹配到的字符串里组的部分放到一个元组中，先将包含有组的组，看作一个整体也就是一个组，把这个整体组放入一个元组里，然后在把组里的组放入一个元组，最后将所有组放入一个列表返回
+				eg:
+					>>> origin = "hello alex bcd alex lge alex acd 19"
+					>>> r = re.findall("(a)(\w+(e))", origin)
+					>>> print (r)
+					[('a', 'le', 'e'), ('a', 'le', 'e'), ('a', 'le', 'e')]
+					
+				?:在有分组的情况下findall()函数，不只拿分组里的字符串，拿所有匹配到的字符串，注意?:只用于不是返回正则对象的函数如findall()
+				eg:
+					>>> origin = "hello alex bcd alex lge alex acd 19"
+					>>> b = re.findall("a(?:\w+)",origin)
+					>>> print (b)
+					['alex', 'alex', 'alex', 'acd']
+					
+					>>> r = re.findall("a(\w+)", origin)
+					>>> print (r)
+					['lex', 'lex', 'lex', 'cd']
+					
+		5. finditer()
+				搜索string，返回一个顺序访问每一个匹配结果(Match对象)的迭代器。找到RE匹配的所有子串，并把它们作为一个迭代器返回。
+				
+				re.finditer(pattern, string, flags=0)
+				
+				eg
+					>>> iter = re.finditer(r'\d+','12 drumm44ers drumming, 11 ... 10 ...')
+					>>> for i in iter:
+					    print(i)
+					    print(i.group())
+					    print(i.span())
+					   
+					输出结果如下：
+					<_sre.SRE_Match object; span=(0, 2), match='12'>
+					12
+					(0, 2)
+					<_sre.SRE_Match object; span=(8, 10), match='44'>
+					44
+					(8, 10)
+					<_sre.SRE_Match object; span=(24, 26), match='11'>
+					11
+					(24, 26)
+					<_sre.SRE_Match object; span=(31, 33), match='10'>
+					10
+					(31, 33)
+				
+				
+		6. split()
+			根据正则匹配分割字符串，返回分割后的一个列表
+			
+			split(pattern, string, maxsplit=0, flags=0)
+				# pattern： 	正则模型
+				# string： 		要匹配的字符串
+				# maxsplit：	指定分割个数
+				# flags： 		匹配模式
+		
+			按照一个字符将全部字符串进行分割
+				eg:
+					>>> origin = "hello alex bcd alex lge alex acd 19"
+					>>> r = re.split("a", origin)
+					>>> print (r)
+					['hello ', 'lex bcd ', 'lex lge ', 'lex ', 'cd 19']
+		
+			将匹配到的字符串作为分割标准进行分割
+				eg:
+					>>> origin = "hello alex bcd alex lge alex acd 19"
+					>>> r = re.split("a\w+", origin)
+					>>> print (r)
+					['hello ', ' bcd ', ' lge ', ' ', ' 19']
+					
+		7. sub()
+			替换匹配成功的指定位置字符串
+			
+			sub(pattern, repl, string, count=0, flags=0)
+				# pattern： 正则模型
+				# repl： 		要替换的字符串
+				# string： 	要匹配的字符串
+				# count： 	指定匹配个数
+				# flags： 	匹配模式
+			
+			eg:
+				>>> origin = "hello alex bcd alex lge alex acd 19"
+				>>> r = re.sub("a","123",origin)
+				>>> print (r)
+				hello 123lex bcd 123lex lge 123lex 123cd 19
+				
+		8. subn()
+			替换匹配成功的指定位置字符串,并且返回替换次数，可以用两个变量分别接受
+			
+			subn(pattern, repl, string, count=0, flags=0)
+				# pattern： 正则模型
+				# repl： 		要替换的字符串
+				# string： 	要匹配的字符串
+				# count： 	指定匹配个数
+				# flags： 	匹配模式
+			
+			eg:
+				>>> origin = "hello alex bcd alex lge alex acd 19"
+				>>> r,n = re.subn("a","123",origin)
+				>>> print (r)
+				hello 123lex bcd 123lex lge 123lex 123cd 19
+				>>> print (n)
+				4
+			
+	五、正则匹配模式表
+		re.S(DOTALL):	使.匹配包括换行在内的所有字符
+		re.I(IGNORECASE): 使匹配对大小写不敏感
+		re.L(LOCALE): 做本地化识别（locale-aware)匹配，法语等
+		re.M(MULTILINE): 多行匹配，影响^和$
+		re.X(VERBOSE): 该标志通过给予更灵活的格式以便将正则表达式写得更易于理解
+		re.U: 根据Unicode字符集解析字符，这个标志影响\w,\W,\b,\B
+			
+	六、正则小实践
+		匹配IP
+			re.search(r"(([01]?\d?\d|2[0-4]\d|25[0-5])\.){3}([01]?\d?\d|2[0-4]\d|25[0-5]\.)","192.168.1.1")
+			
+	七、重点解析
+		1. r原生字符
+			将在python里有特殊意义的字符如\b，转换成原生字符(就是去除它在python的特殊意义)，不然会给正则表达式有冲突，为了避免这种冲突可以在规则前加原始字符r
+		
+		2. 正则表达式，返回类型为表达式对象的
+			如：<_sre.SRE_Match object; span=(6, 7), match='a'>  
+			
+			返回对象的，需要用正则方法取字符串，方法有
+				group() 		#获取匹配到的所有结果，不管有没有分组将匹配到的全部拿出来，有参取匹配到的第几个如2
+				groups() 		#获取模型中匹配到的分组结果，只拿出匹配到的字符串中分组部分的结果
+				groupdict() #获取模型中匹配到的分组结果，只拿出匹配到的字符串中分组部分定义了key的组结果
+		
+		3. 匹配到的字符串里出现空字符
+			注意：正则匹配到空字符的情况，如果规则里只有一个组，而组后面是*就表示组里的内容可以是0个或者多个，这样组里就有了两个意思，一个意思是匹配组里的内容，二个意思是匹配组里0内容（即是空白）所以尽量避免用*否则会有可能匹配出空字符串
+		
+		4. ()分组
+			注意：分组的意义，就是在匹配成功的字符串中，在提取()组里面的字符串
+			
+		5. ?:
+			?:在有分组的情况下findall()函数，不只拿分组里的字符串，而是拿所有匹配到的字符串，注意?:只用于不是返回正则对象的函数如findall()
+			
+os模块
+	https://www.cnblogs.com/ginvip/p/6439679.html
+	https://www.cnblogs.com/sunyang945/p/7900957.html
+		
+	os模块就是对操作系统进行操作，使用该模块必须先导入模块
+	import os
+	
+	环境变量
+			环境变量就是一些命令的集合
+			操作系统的环境变量就是操作系统在执行系统命令时搜索命令的目录的集合
+			
+	常见函数
+		os.sep:取代操作系统特定的路径分隔符
+		os.name:指示你正在使用的工作平台。比如对于Windows，它是'nt'，而对于Linux/Unix用户，它是'posix'。
+		os.getcwd:得到当前工作目录，即当前python脚本工作的目录路径。
+		os.getenv()和os.putenv:分别用来读取和设置环境变量
+		os.listdir():返回指定目录下的所有文件和目录名
+		os.remove(file):删除一个文件
+		os.stat（file）:获得文件属性
+		os.chmod(file):修改文件权限和时间戳
+		os.mkdir(name):创建目录
+		os.rmdir(name):删除目录
+		os.removedirs（r“c：\python”）:删除多个目录
+		os.system():运行shell命令
+		os.exit():终止当前进程
+		os.linesep:给出当前平台的行终止符。例如，Windows使用'\r\n'，Linux使用'\n'而Mac使用'\r'
+		os.path.split():返回一个路径的目录名和文件名
+		os.path.isfile()和os.path.isdir()分别检验给出的路径是一个目录还是文件
+		os.path.existe():检验给出的路径是否真的存在
+		os.listdir(dirname):列出dirname下的目录和文件
+		os.getcwd():获得当前工作目录
+		os.curdir:返回当前目录（'.'）
+		os.chdir(dirname):改变工作目录到dirname,即去掉文件名，返回目录路径
+		os.path.basename(‘path/filename’): 去掉目录路径，返回文件名
+		os.path.isdir(name):判断name是不是目录，不是目录就返回false
+		os.path.isfile(name):判断name这个文件是否存在，不存在返回false
+		os.path.exists(name):判断是否存在文件或目录name
+		os.path.getsize(name):或得文件大小，如果name是目录返回0L
+		os.path.abspath(name):获得绝对路径
+		os.path.isabs():判断是否为绝对路径
+		os.path.normpath(path):规范path字符串形式
+		os.path.split(name):分割文件名与目录（事实上，如果你完全使用目录，它也会将最后一个目录作为文件名而分离，同时它不会判断文件或目录是否存在）
+		os.path.splitext():分离文件名和扩展名
+		os.path.join(path,name):连接目录与文件名或目录
+		os.path.basename(path):返回文件名
+		os.path.dirname(path):返回文件路径
+		os.path.getatime\ctime\mtime： 分别返回最近访问、创建、修改时间
+		
+			
+	文件操作
+		os.mknod("text.txt")		# 创建空文件
+		fp = open("text.txt",w)	# 直接打开一个文件，如果文件不存在就创建文件
+			open模式
+				w 写方式
+				a 追加模式打开(从EOF开始，必要时创建新文件)
+				r+ 以读写模式打开
+				w+ 以读写模式打开
+				a+ 以读写模式打开
+				rb 以二进制读模式打开
+				wb 以二进制写模式打开 (参见 w )
+				ab 以二进制追加模式打开 (参见 a )
+				rb+ 以二进制读写模式打开 (参见 r+ )
+				wb+ 以二进制读写模式打开 (参见 w+ )
+				ab+ 以二进制读写模式打开 (参见 a+ )
+		fp.read([size])  #size为读取的长度，以byte为单位
+		fp.readline([size])  #读一行，如果定义了size，有可能返回的只是一行的一部分 
+		fp.readlines([size])  #把文件每一行作为一个list的一个成员，并返回这个list。其实它的内部是通过循环调用readline()来实现的。如果提供size参数，size是表示读取内容的总长，也就是说可能只读到文件的一部分。
+		fp.write(str)  #把str写到文件中，write()并不会在str后加上一个换行符	
+		fp.writelines(seq)  #把seq的内容全部写到文件中(多行一次性写入)。这个函数也只是忠实地写入，不会在每行后面加上任何东西。		 
+		fp.close()  #关闭文件。python会在一个文件不用后自动关闭文件，不过这一功能没有保证，最好还是养成自己关闭的习惯。 如果一个文件在关闭后还对其进行操作会产生ValueError
+		fp.flush()  #把缓冲区的内容写入硬盘
+		fp.fileno()  #返回一个长整型的”文件标签“
+		fp.isatty()  #文件是否是一个终端设备文件（unix系统中的）
+		fp.tell()  #返回文件操作标记的当前位置，以文件的开头为原点
+		fp.next()  #返回下一行，并将文件操作标记位移到下一行。把一个file用于for … in file这样的语句时，就是调用next()函数来实现遍历的。
+		fp.seek(offset[,whence])  #将文件打操作标记移到offset的位置。这个offset一般是相对于文件的开头来计算的，一般为正数。但如果提供了whence参数就不一定了，whence可以为0表示从头开始计算，1表示以当前位置为原点计算。2表示以文件末尾为原点进行计算。需要注意，如果文件以a或a+的模式打开，每次进行写操作时，文件操作标记会自动返回到文件末尾。
+		fp.truncate([size])  #把文件裁成规定的大小，默认的是裁到当前文件操作标记的位置。如果size比文件的大小还要大，依据系统的不同可能是不改变文件，也可能是用0把文件补到相应的大小，也可能是以一些随机的内容加上去。
+
+	目录操作
+		os.mkdir("file") # 创建目录	 
+		shutil.copyfile("oldfile","newfile")  #复制文件:oldfile和newfile都只能是文件 
+		shutil.copy("oldfile","newfile")  # oldfile只能是文件夹，newfile可以是文件，也可以是目标目录
+		shutil.copytree("olddir","newdir")  # 复制文件夹.olddir和newdir都只能是目录，且newdir必须不存在
+		
+		os.rename("oldname","newname")  # 重命名文件(目录).文件或目录都是使用这条命令 
+		shutil.move("oldpos","newpos")  # 移动文件(目录) 
+		
+		os.rmdir("dir")  # 只能删除空目录 
+		shutil.rmtree("dir")  # 空目录、有内容的目录都可以删
+		 
+		os.chdir("path")  # 转换目录，换路径
+
+	函数使用
+		1. getcwd() 
+			获取当前工作目录(当前工作目录默认都是当前文件所在的文件夹)
+			eg:
+				>>> import os
+				>>> result = os.getcwd()
+				>>> print (result)
+				C:\Python34
+
+		2. chdir()
+			改变当前工作目录
+			eg:
+				>>> os.chdir('/home/sy')
+				>>> result = os.getcwd()
+				>>> print(result)
+				home/sy
+
+		3. open()
+			打开文件
+			eg:
+				# 打开相对路径下的文件
+				>>> open('02.txt','w') 
+
+				# 操作时如果书写完整的路径则不需要考虑默认工作目录的问题,按照实际书写路径操作
+				>>> open('/home/sy/下载/02.txt','w')
+				
+		4. listdir() 
+			获取指定文件夹中所有内容的名称列表
+			eg:
+				>>> result = os.listdir('/home/sy')
+				>>> print(result)
+				
+		5. mkdir()
+			创建文件夹
+			eg:
+				>>> os.mkdir('girls')
+				>>> os.mkdir('boys',0o777)
+				
+		6. makedirs()
+			递归创建文件夹
+			eg:
+				>>> os.makedirs('/home/sy/a/b/c/d')
+				
+		7. rmdir()
+			删除空目录
+			eg:
+				>>> os.rmdir('girls')
+				
+		8. removedirs()
+			递归删除文件夹，必须都是空目录
+			rg:
+				>>> os.removedirs('/home/sy/a/b/c/d')
+				
+		9. rename()
+			文件或文件夹重命名
+			eg:
+				>>> os.rename('/home/sy/a','/home/sy/danran'
+				>>> os.rename('02.txt','002.txt')
+				
+		10. stat()
+			获取文件或文件夹的信息
+			eg:
+				>>> result = os.stat('/home/sy/PycharmProject/Python3/10.27/01.py')
+				>>> print(result)
+				
+		11. system() 
+			执行系统命令(危险函数)
+			eg:
+				>>> result = os.system('ls -al')
+				>>> print(result)
+				
+		12. getenv()
+			获取系统的环境变量
+			eg:
+				>>> result = os.getenv('PATH')
+				>>> print(result.split(':'))
+				
+		13. putenv() 
+			将一个目录添加到环境变量中(临时增加仅对当前脚本有效)
+			eg:
+				>>> os.putenv('PATH','/home/sy/下载')
+				>>> os.system('syls')
+				
+		14. exit() 
+			退出终端的命令
+				
+		15. curdir()
+			表示当前文件夹，.表示当前文件夹，一般情况下可省略
+			eg:
+				>>> print(os.curdir())
+				
+		16. pardir()
+			表示上一层文件夹,..表示上一层文件夹,不可省略!
+			eg:
+				print(os.pardir(..))
+				
+		17. mkdir()
+			新建目录
+			eg:
+				>>> os.mkdir('../../../man')	#相对路径,从当前目录开始查找
+				>>> os.mkdir('/home/sy/man1')	#绝对路径,从根目录开始查找
+				
+		18. name()
+			获取代表操作系统的名称字符串
+			eg:
+				>>> print(os.name())
+				
+		19. sep()
+			获取系统路径间隔符号(window ->\    linux ->/)
+			eg:
+				>>> print(os.sep())
+				
+		20. extsep()
+			获取文件名称和后缀之间的间隔符号(window & linux -> .)
+			eg:
+				>>> print(os.extsep)
+				
+		21. linesep()
+			获取操作系统的换行符号(window -> \r\n  linux/unix -> \n)
+			eg:
+				>>> print(repr(os.linesep))
+				
+	os.path子模块函数
+		1. abspath()  
+			将相对路径转化为绝对路径
+				eg:
+					>>> path = './boys'	#相对
+					>>> result = os.path.abspath(path)
+					>>> print(result)
+				
+		2. dirname()
+			获取完整路径当中的目录部分  
+			eg:
+				>>> path = '/home/sy/boys'
+				>>> result = os.path.dirname(path)
+				>>> print(result)
+			
+		3. basename()
+			获取完整路径当中的主体部分
+			eg:
+				>>> path = '/home/sy/boys'
+				>>> result = os.path.basename(path)
+				>>> print(result)
+				
+		4. split()
+			将一个完整的路径切割成目录部分和主体部分
+			eg:
+				>>> path = '/home/sy/boys'
+				>>> result = os.path.split(path)
+				>>> print(result)
+				
+		5. join()
+			将2个路径合并成一个
+			eg:
+				>>> var1 = '/home/sy'
+				>>> var2 = '000.py'
+				>>> result = os.path.join(var1,var2)
+				>>> print(result)
+	          
+	  6. splitext()
+	  	将一个路径切割成文件后缀和其他两个部分,主要用于获取文件的后缀
+	  	eg:
+	  		>>> path = '/home/sy/000.py'
+				>>> result = os.path.splitext(path)
+				>>> print(result)
+	  	
+	  7. getsize()
+	  	获取文件的大小
+	  	eg:
+	  		>>> path = '/home/sy/000.py'
+				>>> result = os.path.getsize(path)
+				>>> print(result)
+
+		8. isdir()  
+			检测是否是文件夹
+			eg:
+				>>> result = os.path.isdir(path)
+				>>> print(result)
+				
+		9. islink() 
+			检测是否是链接
+			eg:
+				>>> path = '/initrd.img.old'
+				>>> result = os.path.islink(path)
+				>>> print(result)
+			
+		10. getctime() 
+			获取文件的创建时间
+			get create time
+			
+			eg:
+				>>> import time
+				>>> filepath = '/home/sy/下载/chls'
+
+				>>> result = os.path.getctime(filepath)
+				>>> print(time.ctime(result))
+
+		11. getmtime() 
+			获取文件的修改时间 
+			get modify time
+			
+			eg:
+				>>> import time
+				>>> filepath = '/home/sy/下载/chls'
+
+				>>> result = os.path.getmtime(filepath)
+				>>> print(time.ctime(result))
+				
+		12. getatime() 
+			获取文件的访问时间 
+			get active time
+			
+			eg:
+				>>> import time
+				>>> filepath = '/home/sy/下载/chls'
+
+				>>> result = os.path.getctime(filepath)
+				>>> print(time.ctime(result))
+				>>> 
+				>>> result = os.path.getmtime(filepath)
+				>>> print(time.ctime(result))
+				>>> 
+				>>> result = os.path.getatime(filepath)
+				>>> print(time.ctime(result))
+				
+		13. exists() 
+			检测某个路径是否真实存在
+			eg:
+				>>> filepath = '/home/sy/下载/chls'
+				>>> result = os.path.exists(filepath)
+				>>> print(result)
+				
+		14. isabs() 
+			检测一个路径是否是绝对路径
+			eg:
+				>>> path = '/boys'
+				>>> result = os.path.isabs(path)
+				>>> print(result)
+				
+		15. samefile() 
+			检测2个路径是否是同一个文件
+			eg:
+				>>> path1 = '/home/sy/下载/001'
+				>>> path2 = '../../../下载/001'
+				>>> result = os.path.samefile(path1,path2)
+				>>> print(result)
+				
+		16. os.environ()
+			用于获取和设置系统环境变量的内置值
+			eg:
+				>>> import os
+				
+				#获取系统环境变量,getenv()效果
+				>>> print(os.environ['PATH'])
+			
+		17. environ()
+			设置系统环境变量 putenv()
+			eg:
+				>>> os.environ(['PATH']) += ':/home/sy/下载'
+				>>> os.system('chls')
+	
+
+sys模块
+	sys模块提供了一系列有关Python运行环境的变量和函数
+	https://blog.csdn.net/liu5257/article/details/53740214
+		
+	sys模块常见函数列表
+		sys.argv: 实现从程序外部向程序传递参数。命令行参数List，第一个元素是程序本身路径
+		sys.exit([arg]): 程序中间的退出，arg=0为正常退出。
+		sys.getdefaultencoding(): 获取系统当前编码，一般默认为ascii。
+		sys.setdefaultencoding(): 设置系统默认编码，执行dir(sys)时不会看到这个方法，在解释器中执行不通过，可以先执行reload(sys)，在执行setdefaultencoding('utf8')，此时将系统默认编码设置为utf8。(见设置系统默认编码)
+		sys.getfilesystemencoding(): 获取文件系统使用编码方式，Windows下返回'mbcs'，mac下返回'utf-8'.
+		sys.path: 获取指定模块搜索路径的字符串集合，可以将写好的模块放在得到的某个路径下，就可以在程序中import时正确找到。
+		sys.platform: 获取当前系统平台。
+		sys.stdin,sys.stdout,sys.stderr: stdin,stdout,以及stderr变量包含与标准IO流对应的流对象.如果需要更好地控制输出,而print不能满足你的要求, 它们就是你所需要的. 你也可以替换它们, 这时候你就可以重定向输出和输入到其它设备(device),或者以非标准的方式处理它们
+		sys.builtin_module_names: 返回一个列表，包含内建模块的名字。
+		sys.modules: 返回系统导入的模块字段，key是模块名，value是模块,sys.modules是一个全局字典，该字典是python启动后就加载在内存中。每当程序员导入新的模块，sys.modules将自动记录该模块。当第二次再导入该模块时，python会直接到字典中查找，从而加快了程序运行的速度。它拥有字典所拥有的一切方法.
+		sys.modules.keys(): 返回所有已经导入的模块列表
+		sys.exc_info(): 获取当前正在处理的异常类,exc_type、exc_value、exc_traceback当前处理的异常详细信息
+		sys.hexversion: 获取Python解释程序的版本值,16进制格式如：0x020403F0
+		sys.version: 获取Python解释程序的版本信息
+		sys.maxint: 最大的Int值
+		sys.maxunicode: 最大的Unicode值		
+		sys.exc_clear(): 用来清除当前线程所出现的当前的或最近的错误信息
+		sys.exec_prefix: 返回平台独立的python文件安装的位置	
+		sys.byteorder: 本地字节规则的指示器，big-endian平台的值是'big',little-endian平台的值是'little'		
+		sys.copyright: 记录python版权相关的东西		
+		sys.api_version: 解释器的C的API版本
+
+	函数使用
+		1. sys.argv
+			实现从程序外部向程序传递参数
+			sys.argv 变量是一个包含了命令行参数的字符串列表, 利用命令行想程序传递参数. 其中,脚本的名称总是sys.argv列表的第一个参数。
+		
+			sys.argv[0]	当前程序名
+			sys.argv[1]	第一个参数
+			sys.argv[0]	第二个参数
+		
+			eg:sys.py
+				#!/usr/bin/env python
+				import sys
+				print sys.argv[0]
+				print sys.argv[1]
+		
+				运行输出
+				# python sys.py argv1
+				sys.py
+				argv1
+			
+		2. sys.platform
+			获取当前执行环境的平台
+			eg:
+				>>> import sys
+				>>> sys.platform
+				'linux2'
+				
+		3. sys.path
+			获取指定模块搜索路径的字符串集合，可以将写好的模块放在得到的某个路径下，就可以在程序中import时正确找到。在import导入module_name时，就是根据sys.path的路径来搜索module.name，也可以自定义添加模块路径。 
+			
+			sys.path.append(“自定义模块路径”)
+			eg:
+				>>> import sys
+				>>> sys.path
+				['', 'D:\\tools\\Python\\Lib\\idlelib', 'C:\\Windows\\system32\\python34.zip', 'D:\\tools\\Python\\DLLs', 'D:\\tools\\Python\\lib', 'D:\\tools\\Python', 'D:\\tools\\Python\\lib\\site-packages']
+				
+				# 在path的开始位置 插入test
+				>>> sys.path.insert(0,'test')
+				>>> sys.path
+				
+		4. sys.modules
+		 	sys.modules是一个全局字典，该字典是python启动后就加载在内存中。每当程序员导入新的模块，sys.modules将自动记录该模块。当第二次再导入该模块时，python会直接到字典中查找，从而加快了程序运行的速度。它拥有字典所拥有的一切方法。
+		 	eg:
+			 	#!/usr/bin/env python
+				import sys
+				print sys.modules.keys()
+				print sys.modules.values()
+				print sys.modules["os"]
+				
+				run 输出
+				python modules.py
+				['copy_reg', 'sre_compile', '_sre', 'encodings', 'site', '__builtin__',......
+		
+		5. sys.builtin_module_names
+			返回一个列表，包含内建模块的名字
+			eg:
+				# encoding: utf-8
+				# find_module.py	
+				import sys			
+				
+				# print sys.builtin_module_names	
+				def find_module(module):
+				    if module in sys.builtin_module_names:
+				        print module," => ","__builtin__"
+				    else:
+				        print module,"=> ",__import__(module).__file__		
+				
+				find_module('os')
+				find_module('sys')
+				find_module('strop')
+				find_module('zlib')
+				find_module('string')
+				
+				# 运行结果：
+				>>> 
+				======================== RESTART: E:/p/find_module.py ========================
+				os =>  E:\Python27\lib\os.pyc
+				sys  =>  __builtin__
+				strop  =>  __builtin__
+				zlib  =>  __builtin__
+				string =>  E:\Python27\lib\string.pyc
+			
+		6. sys.stdin, sys.stdout, sys.stderr 
+			stdin,stdout,以及stderr变量包含与标准IO流对应的流对象. 如果需要更好地控制输出,而print不能满足你的要求, 它们就是你所需要的. 你也可以替换它们, 这时候你就可以重定向输出和输入到其它设备(device), 或者以非标准的方式处理它们.
+			eg:
+				# 标准输入
+				#!/usr/bin/python
+				import sys
+				#print('Hi, %s!' %input('Please enter your name: ')) python3.*版本用input
+				print('Hi, %s!' %raw_input('Please enter your name: ')) #python2.*版本用raw_input
+				运行结果:
+				Please enter your name: er
+				Hi, er!
+				等同于:
+				 #!/usr/bin/python
+				import sys
+				print('Please enter your name:')
+				name=sys.stdin.readline()[:-1]
+				print('Hi, %s!' %name)
+				
+				# 标准输出
+				print('Hello World!\n')
+				等同于:
+				#!/usr/bin/python
+				import sys
+				sys.stdout.write('output resule is good!\n')
+				
+				# 其他实验
+				#!/usr/bin/python
+				import sys
+				
+				for i in (sys.stdin, sys.stdout, sys.stderr):
+				    print(i)
+				执行结果:
+				python sys-test1.py
+				<open file '<stdin>', mode 'r' at 0x7fa4e630f0c0>
+				<open file '<stdout>', mode 'w' at 0x7fa4e630f150>
+				<open file '<stderr>', mode 'w' at 0x7fa4e630f1e0>
+				
+		7. sys.exit(n)
+			执行到主程序末尾，解释器自动退出，但是如果需要中途退出程序，可以调用sys.exit函数，带有一个可选的整数参数返回给调用它的程序,表示你可以在主程序中捕获对sys.exit的调用。(0是正常退出,其他为异常)
+			eg:
+				#!/usr/bin/python
+				import sys
+				
+				def exitfunc(value):
+				    print (value)
+				    sys.exit(0)
+				
+				print("hello")
+				
+				try:
+				    sys.exit(90)
+				except SystemExit as value:
+				    exitfunc(value)   
+				
+				print("come?")
+
+				run 输出
+				# python exit.py
+				hello
+				90
+				
+		8. sys.getdefaultencoding() / sys.setdefaultencoding() / sys.getfilesystemencoding() 
+			sys.getdefaultencoding() 
+			获取系统当前编码，一般默认为ascii。 
+			
+			sys.setdefaultencoding() 
+			设置系统默认编码，执行dir(sys)时不会看到这个方法，在解释器中执行不通过，可以先执行reload(sys)，在执行 setdefaultencoding(‘utf8’)，此时将系统默认编码设置为utf8。（见设置系统默认编码 ） 
+			
+			sys.getfilesystemencoding() 
+			获取文件系统使用编码方式，Windows下返回’mbcs’，mac下返回’utf-8’
+
+
+
+
+datetime模块
+
+multiprocessing模块
+
+
+
+multiprocessing模块
