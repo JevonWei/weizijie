@@ -1250,12 +1250,306 @@ sys模块
 
 
 
-
 datetime模块
+	datetime模块用于是date和time模块的合集，datetime有两个常量，MAXYEAR和MINYEAR，分别是9999和1.
+	datetime模块定义了5个类，分别是
+		1.datetime.date：表示日期的类
+		2.datetime.datetime：表示日期时间的类
+		3.datetime.time：表示时间的类
+		4.datetime.timedelta：表示时间间隔，即两个时间点的间隔
+		5.datetime.tzinfo：时区的相关信息
 
+	python中时间日期格式化符号：                                  
+  	%y 两位数的年份表示(00-99)                              
+  	%Y 四位数的年份表示(000-9999)
+  	%m 月份（01-12）          	                          
+  	%d 月内中的一天（0-31）     	                          
+  	%H 24小时制小时数（0-23）   	                          
+  	%I 12小时制小时数（01-12）  	                          
+  	%M 分钟数（00=59）          	                          
+  	%S 秒（00-59）
+  	%a 本地简化星期名称
+  	%A 本地完整星期名称
+  	%b 本地简化的月份名称
+  	%B 本地完整的月份名称
+  	%c 本地相应的日期表示和时间表示
+  	%j 年内的一天(001-366)
+  	%p 本地A.M.或P.M.的等价符               
+  	%U 一年中的星期数（00-53）星期天为星期的开始                         
+  	%w 星期（0-6），星期天为星期的开始                                  
+  	%W 一年中的星期数（00-53）星期一为星期的开始                       
+  	%x 本地相应的日期表示                                    
+  	%X 本地相应的时间表示                              
+  	%Z 当前时区的名称                                        
+  	%% %号本身 
+  	
+  datetime.date类
+  	1.datetime.date.ctime(),返回格式如 Sun Apr 16 00:00:00 2017                                                                   	                                                                                                                            
+  	2.datetime.date.fromtimestamp(timestamp),根据给定的时间戮，返回一个date对象；datetime.date.today()作用相同                    	                                                                                                                            
+  	3.datetime.date.isocalendar():返回格式如(year，month，day)的元组,(2017, 15, 6)                                                	                                                                                                                            
+  	4.datetime.date.isoformat()：返回格式如YYYY-MM-DD                                                                             	                                                                                                                            
+  	5.datetime.date.isoweekday()：返回给定日期的星期（0-6），星期一=0，星期日=6                                                   	                                                                                                                            
+  	6.datetime.date.replace(year,month,day)：替换给定日期，但不改变原日期                                                         	                                                                                                                            
+  	7.datetime.date.strftime(format):把日期时间按照给定的format进行格式化。                                                       	                                                                                                                            
+  	8.datetime.date.timetuple()：返回日期对应的time.struct_time对象                                                               	                                                                                                                            
+  	　　time.struct_time(tm_year=2017, tm_mon=4, tm_mday=15, tm_hour=0, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=105, tm_isdst=-1)  	                                                                                                                            
+  	9.datetime.date.weekday()：返回日期的星期                                                                                   
+  
+  	创建datetime.date对象方法
+			print(datetime.date(2018, 1, 19))                       # 3个int值
+			print(datetime.date.fromtimestamp(time.time()))         # 时间戳
+			print(datetime.date(2018, 1, 20).replace(2018, 1, 19))  # 3个int值替换一个datetime.date对象
+			print(datetime.date.today())                            # 今天的datetime.date对象
+			print(datetime.date.fromordinal(736713))                # 从一个日期顺序值获取，1对应0001-01-01
+			
+		datetime.date对象的运算方法
+			print(datetime.date(2018, 1, 19) + datetime.timedelta(1))
+			print(datetime.date(2018, 1, 19) + datetime.timedelta(-1))
+			print(datetime.date(2018, 1, 20) - datetime.date(2018, 1, 19))
+			print(datetime.date(2018, 1, 20) - datetime.timedelta(1))
+			print(type(datetime.date(2018, 1, 20) - datetime.date(2018, 1, 19)))  # <class 'datetime.timedelta'>
+			print(datetime.date(2018, 1, 19) == datetime.date(2018, 1, 19))
+			print(datetime.date(2018, 1, 19) >= datetime.date(2018, 1, 19))
+			print(datetime.date(2018, 1, 19) > datetime.date(2018, 1, 19))
+			print(datetime.date(2018, 1, 19) <= datetime.date(2018, 1, 19))
+			print(datetime.date(2018, 1, 19) < datetime.date(2018, 1, 19))
+			print(datetime.date(2018, 1, 19) != datetime.date(2018, 1, 19))
+			
+		获取datetime.date对象属性
+			print(getattr(datetime.date(2018, 1, 19), 'year'))
+			print(getattr(datetime.date(2018, 1, 19), 'month'))
+			print(getattr(datetime.date(2018, 1, 19), 'day'))
+			print(datetime.date(2018, 1, 19).year)
+			print(datetime.date(2018, 1, 19).month)
+			print(datetime.date(2018, 1, 19).day)
+			
+		判断星期几
+			# weekday Monday == 0 ... Sunday == 6
+			print(datetime.date.weekday(datetime.date.today()))
+			# isoweekday Monday == 1 ... Sunday == 7
+			print(datetime.date.isoweekday(datetime.date.today()))
+			
+		datetime.date对象格式化
+			print(repr(datetime.date(2018, 1, 19)))        # datetime.date(2018, 1, 19)
+			print(type(repr(datetime.date(2018, 1, 19))))  # <class 'str'>
+			print(str(datetime.date(2018, 1, 19)))         # 2018-01-19
+			print(datetime.date.ctime(datetime.date(2018, 1, 19)))  # Sat Jan 19 00:00:00 2018
+			print(datetime.date.isocalendar(datetime.date(2018, 1, 19)))  # (ISO year, week number, and weekday)
+			print(datetime.date.isoformat(datetime.date(2018, 1, 19)))    # 2018-01-19
+			print(datetime.date.strftime(datetime.date.today(), '%Y'))
+			print(datetime.date.timetuple(datetime.date.today()))         # tm_isdst=-1
+			print(time.localtime())                                       # tm_isdst=0
+			
+		其他
+			print(hash(datetime.date(2018, 1, 19)))
+			print(datetime.date.toordinal(datetime.date.today()))	  	
+  	  	
+  datetime.datetime类	  	
+  	datetime类有很多参数，datetime(year, month, day[, hour[, minute[, second[, microsecond[,tzinfo]]]]])，返回年月日，时分秒
+		
+		1.datetime.datetime.ctime()	
+		2.datetime.datetime.now().date()：返回当前日期时间的日期部分	
+		3.datetime.datetime.now().time()：返回当前日期时间的时间部分	
+		4.datetime.datetime.fromtimestamp()	
+		5.datetime.datetime.now()：返回当前系统时间	
+		6.datetime.datetime.replace()	
+		7.datetime.datetime.strftime()：由日期格式转化为字符串格式
+			datetime.datetime.now().strftime('%b-%d-%Y %H:%M:%S')
+			'Apr-16-2017 21:01:35'
+		8.datetime.datetime.strptime():由字符串格式转化为日期格式
+		9.datetime.datetime.strptime('Apr-16-2017 21:01:35', '%b-%d-%Y %H:%M:%S')
+			2017-04-16 21:01:35  	
+  		
+	  创建datetime.datetime对象方法                                                      
+	  	print(datetime.datetime(2018, 1, 19, 11, 6, 30, 1000))                           	
+	  	print(datetime.datetime.now())                                                   	
+	  	print(datetime.datetime.combine(datetime.date.today(), datetime.time(10, 2, 30)))	
+	  	print(datetime.datetime.fromtimestamp(time.time()))                              	
+	  	print(datetime.datetime.now().replace(2018, 1, 19, 11, 6, 30, 1000))             	
+	  	print(datetime.datetime.strptime('2018-10-20', '%Y-%m-%d'))                      	
+	  	print(datetime.datetime.utcfromtimestamp(time.time()))  # 本地时间减8小时        	
+	  	print(datetime.datetime.utcnow())                                                	
+	  	                                                                                 	
+	  datetime.datetime对象的运算方法                                                	
+	  	print(datetime.datetime.now() + datetime.timedelta(1))                           	
+	  	print(datetime.datetime.now() - datetime.timedelta(1))                           	
+	  	print(datetime.datetime.now() - datetime.datetime.now())                         	
+	  	print(datetime.datetime.now() == datetime.datetime.now())                        	
+	  	print(datetime.datetime.now() >= datetime.datetime.now())                        	
+	  	print(datetime.datetime.now() > datetime.datetime.now())                         	
+	  	print(datetime.datetime.now() <= datetime.datetime.now())                        	
+	  	print(datetime.datetime.now() < datetime.datetime.now())                         	
+	  	print(datetime.datetime.now() != datetime.datetime.now())                        	
+	  	                                                                                 	
+	  获取datetime.datetime对象属性                                                  	
+	  	print(getattr(datetime.datetime.now(), 'year'))                                  	
+	  	print(getattr(datetime.datetime.now(), 'month'))                                 	
+	  	print(getattr(datetime.datetime.now(), 'day'))                                   
+	  	print(getattr(datetime.datetime.now(), 'hour'))                                  
+	  	print(getattr(datetime.datetime.now(), 'minute'))                                
+	  	print(getattr(datetime.datetime.now(), 'second'))                                
+	  	print(getattr(datetime.datetime.now(), 'microsecond'))                           
+	  	print(getattr(datetime.datetime.now(), 'tzinfo'))                                
+	  	print(getattr(datetime.datetime.now(), 'fold'))                                  
+	  	print(datetime.datetime.now().year)                                              
+	  	print(datetime.datetime.now().month)                                             
+	  	print(datetime.datetime.now().day)                                               
+	  	print(datetime.datetime.now().hour)                                              
+	  	print(datetime.datetime.now().minute)                                            
+	  	print(datetime.datetime.now().second)                                            
+	  	print(datetime.datetime.now().microsecond)                                       
+	  	print(datetime.datetime.now().tzinfo)                                            
+	  	print(datetime.datetime.now().fold)                                              
+	  	                                                                                 
+	  datetime.datetime对象格式化                                                    
+	  	print(repr(datetime.datetime.now()))                                             
+	  	print(datetime.datetime.ctime(datetime.datetime.now()))                          
+	  	print(datetime.datetime.isoformat(datetime.datetime.now()))                      
+	  	print(datetime.datetime.timestamp(datetime.datetime.now()))                      
+	  	print(datetime.datetime.timetuple(datetime.datetime.now()))                      
+	  	print(datetime.datetime.utctimetuple(datetime.datetime.now()))                   
+	  	                                                                                 
+	  其他                                                                           
+	  	print(hash(datetime.datetime.now()))                                             
+	  	print(datetime.datetime.astimezone(datetime.datetime.now()))                     
+	  	print(datetime.datetime.time(datetime.datetime.now()))                           
+	  	print(datetime.datetime.timetz(datetime.datetime.now()))                         
+	  	print(datetime.datetime.tzname(datetime.datetime.now()))                         
+	  	print(datetime.datetime.date(datetime.datetime.now()))                           
+	  	print(datetime.datetime.dst(datetime.datetime.now()))                            
+	  	print(datetime.datetime.utcoffset(datetime.datetime.now()))                      
+	  	                                                                                 
+	  继承datetime.date对象的方法                                                    
+	  	# toordinal(...)                                                                 
+	  	# fromordinal(...)                                                               
+	  	# isoweekday(...)                                                                
+	   	# weekday(...)                                                                   
+	  	# today(...)                                                                     
+	  	# isocalendar(...)                                                               
+	    # strftime(...)                                                                  
 
+	datetime.time类
+		time类有5个参数，datetime.time(hour,minute,second,microsecond,tzoninfo),返回08:29:30
 
+		1.datetime.time.replace()
+		2.datetime.time.strftime(format):按照format格式返回时间
+		3.datetime.time.tzname()：返回时区名字
+		4.datetime.time.utcoffset()：返回时区的时间偏移量
+	
+		创建datetime.time对象方法
+			print(datetime.time(11, 40, 30))
+			print(datetime.time(11, 40, 30).replace(12, 30, 20))
+			
+		datetime.time对象的运算方法
+			print(datetime.time(11, 40, 30) == datetime.time(11, 40, 30))
+			print(datetime.time(11, 40, 30) >= datetime.time(11, 40, 30))
+			print(datetime.time(11, 40, 30) > datetime.time(11, 40, 30))
+			print(datetime.time(11, 40, 30) <= datetime.time(11, 40, 30))
+			print(datetime.time(11, 40, 30) < datetime.time(11, 40, 30))
+			print(datetime.time(11, 40, 30) != datetime.time(11, 40, 30))
+			
+		获取datetime.time对象属性
+			print(getattr(datetime.time(11, 40, 30), 'hour'))
+			print(getattr(datetime.time(11, 40, 30), 'minute'))
+			print(getattr(datetime.time(11, 40, 30), 'second'))
+			print(getattr(datetime.time(11, 40, 30), 'microsecond'))
+			print(getattr(datetime.time(11, 40, 30), 'tzinfo'))
+			print(getattr(datetime.time(11, 40, 30), 'fold'))
+			print(datetime.time(11, 40, 30).hour)
+			print(datetime.time(11, 40, 30).minute)
+			print(datetime.time(11, 40, 30).second)
+			print(datetime.time(11, 40, 30).microsecond)
+			print(datetime.time(11, 40, 30).tzinfo)
+			print(datetime.time(11, 40, 30).fold)
+			
+		datetime.time对象格式化
+			print(repr(datetime.time(11, 40, 30)))
+			print(str(datetime.time(11, 40, 30)))
+			print(datetime.time.strftime(datetime.time(11, 40, 30), '%H'))
+			
+		其他
+			print(hash(datetime.time(11, 40, 30)))
+			print(datetime.time.dst(datetime.time(11, 40, 30)))
+			print(datetime.time.isoformat(datetime.time(11, 40, 30)))
+			print(datetime.time.tzname(datetime.time(11, 40, 30)))
+			print(datetime.time.utcoffset(datetime.time(11, 40, 30)))
 
+	timedate.timedelta类
+		datetime.datetime.timedelta用于计算两个日期之间的差值
+	
+		eg:
+			>>> a=datetime.datetime.now()
+			>>> b=datetime.datetime.now()
+			>>> a
+			datetime.datetime(2017, 4, 16, 21, 21, 20, 871000)
+			>>> b
+			datetime.datetime(2017, 4, 16, 21, 21, 29, 603000)
+			
+			>>> b-a
+			datetime.timedelta(0, 8, 732000)
+			>>> (b-a).seconds
+			8
+
+			或者                                   			                                       
+			time1 = datetime.datetime(2016, 10, 20)
+			time2 = datetime.datetime(2015, 11, 2) 
+			                                       
+			"""计算天数差值"""                     
+			print(time1-time2).days                
+			                                       
+			"""计算两个日期之间相隔的秒数"""       
+			print (time1-time2).total_seconds()    
+
+		
+		创建datetime.timedelta类对象方法                                                                                     
+    	print(datetime.timedelta(weeks=0.5, days=1, hours=2, minutes=10, seconds=20, milliseconds=100, microseconds=10000))
+    	                                                                                                                   
+    datetime.timedelta对象的运算方法                                                                                 
+    	print(abs(datetime.timedelta(weeks=-1, days=1, hours=2, minutes=10, seconds=20, microseconds=10000)))              
+    	print(datetime.timedelta(minutes=10) + datetime.timedelta(seconds=20))                                             
+    	print(datetime.timedelta(minutes=0) != datetime.timedelta(minutes=1))                                              
+    	print(divmod(datetime.timedelta(minutes=10), datetime.timedelta(minutes=3)))                                       
+    	print(datetime.timedelta(minutes=0) == datetime.timedelta(minutes=1))                                              
+    	print(datetime.timedelta(minutes=10) // datetime.timedelta(minutes=3))                                             
+    	print(datetime.timedelta(minutes=0) >= datetime.timedelta(minutes=1))                                              
+    	print(datetime.timedelta(minutes=0) > datetime.timedelta(minutes=1))                                               
+    	print(datetime.timedelta(minutes=0) <= datetime.timedelta(minutes=1))                                              
+    	print(datetime.timedelta(minutes=0) < datetime.timedelta(minutes=1))                                               
+    	print(datetime.timedelta(minutes=10) % datetime.timedelta(minutes=3))                                              
+    	print(datetime.timedelta(minutes=10) * 3)                                                                          
+    	print(-datetime.timedelta(minutes=10))                                                                             
+    	print(+datetime.timedelta(minutes=10))                                                                             
+    	print(datetime.timedelta(minutes=10) / datetime.timedelta(minutes=3))  # float                                     
+    	                                                                                                                   
+    datetime.timedelta对象的属性                                                                                     
+    	print(getattr(datetime.timedelta(minutes=10), 'days'))                                                             
+    	print(getattr(datetime.timedelta(minutes=10), 'seconds'))                                                          
+    	print(getattr(datetime.timedelta(minutes=10), 'microseconds'))                                                     
+    	print(datetime.timedelta(minutes=10).days)                                                                         
+    	print(datetime.timedelta(minutes=10).seconds)                                                                      
+    	print(datetime.timedelta(minutes=10).microseconds)                                                                 
+    	                                                                                                                   
+    timedelta对象格式化                                                                                              
+    	print(repr(datetime.timedelta(minutes=10)))                                                                        
+    	print(str(datetime.timedelta(minutes=10)))                                                                         
+    	                                                                                                                   
+    其他                                                                                                             
+    	print(hash(datetime.timedelta(minutes=10)))                                                                        
+    	print(datetime.timedelta(minutes=10).total_seconds())                                                              
+    	print(datetime.timedelta.total_seconds(datetime.timedelta(minutes=10)))                                            
+
+	timedate.tzinfo类
+		eg：
+			ti = datetime.timezone(offset=datetime.timedelta(hours=8), name='east8')  # 创建时区对象
+			print(ti.tzname(datetime.datetime.now()))      # east8                              
+			print(ti.utcoffset(datetime.datetime.now()))   # 8:00:00                            
+			print(ti.dst(datetime.datetime.now()))         # 夏令时，返回None                   
+			                                                                                    
+			u = datetime.datetime(2018, 1, 19, 14, 7, tzinfo=ti)                                
+			t = ti.fromutc(u)                                                                   
+			print(t)                                                                            
+  	
 multiprocessing模块
 
 
+                                  
