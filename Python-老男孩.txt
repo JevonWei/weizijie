@@ -1,0 +1,444 @@
+基本数据类型
+	数字
+		- int()
+			将字符串转换为数字
+				a = '123'
+				b = int(a)
+				print(type(b),b)
+					<class 'int'> 123
+				
+			将十六进制数转换为十进制输出
+				num = "0011"
+				v = int(num,base=16)
+				print(v)
+					17
+				
+		- bit_lenght()
+			当前数字的二进制，至少用N位表示
+				age = 5
+				r = age.bit_length()
+				print(r)
+					3
+	字符串
+		字符串一旦创建，不可修改
+		一旦修改或者拼接，都会造成重新生成字符串
+		
+		join(),split(),find(),strip(),replace(),upper(),lower()
+		
+		- capitalize()	首字母大写
+			test = 'danran'
+			v = test.capitalize()
+			print(v)
+				Danran
+				
+		- casefold() lower()   字符串变小写，casefold比lower效果更好
+			test = 'DanRan'
+			v1 = test.casefold()
+			print(v1)
+			v2 = test.lower()
+			print(v2)
+				danran
+				danran
+				
+		- swapcase()    字符串中的字母大小写转换
+			test = "DanRan"
+			v = test.swapcase()
+			print(v)
+				dANrAN
+				
+		- center()   设置字符串宽度，并将内容居中，20代表总长度，* 空白未知填充
+			test = "Danran"
+			v = test.center(10)
+			print(v)
+			v1 = test.center(15,"*")
+			print(v1)
+				  Danran  
+				*****Danran****	
+
+		- ljust()   # 设置字符串的长度，不足的位数以指定字符填充，字符串放在左边
+			test = "Danran"
+			v = test.ljust(20,'*')
+			print(v)
+				Danran**************
+				
+		- rjust    # 设置字符串的长度，不足的位数以指定字符填充，字符串放在右边
+			test = "Danran"
+			v = test.rjust(20,'*')
+			print(v)
+				**************Danran
+				
+				
+		- count() 在字符串中寻找子序列出现的次数
+			test = "DanranJevonDan"
+			v = test.count('e')
+			print(v)
+			v1 = test.count('a')      # 在test字符串中查找‘a’子字符串出现的次数
+			print(v1)
+			v1 = test.count('a',5)     # 在test字符串中从第五个字符开始查找‘a’子字符串出现的次数
+			print(v1)
+			v1 = test.count('a',5,7)   # 在test字符串中从第五个字符到第七个字符直间查找‘a’子字符串出现的次数
+			print(v1)
+				1
+				3
+				1
+				0
+		- endswith()  判断字符串是否是以指定字符结尾
+			test = "danran"
+			v = test.endswith("a")
+			print(v)
+			v = test.endswith("n")
+			print(v)
+				False
+				True
+			
+		- startswith()  判断字符串是否以指定字符开始
+			test = "danran"
+			v = test.startswith("d")
+			print(v)
+				True
+			
+		- find()   从开始往后找，找到第一个之后，获取其位置
+			test = "danran"
+			v = test.find("an")
+			print(v)
+				1
+			v = test.find("an",3,5)
+			print(v)
+			v = test.find("an",3,6)
+			print(v)
+				-1
+				4
+				
+		- format()   格式化字符串，将字符串中的占位符替换为指定的值
+			test = 'I am {name},age {age}'
+			print(test)
+			v = test.format(name='danran',age=18)   
+			print(v)
+				I am {name},age {age}
+				I am danran,age 18
+			
+			test = 'I am {0},age {1}'       按参数的位置传递相应的值
+			print(test)
+			v = test.format('danran',18)
+			print(v)
+				I am {name},age {age}
+				I am danran,age 18
+			
+		- format_map()   格式化，传入的值为字典格式
+			test = 'I am {name},age {age}'
+			v1 = test.format(name='df',age=10)
+			v2 = test.format_map({"name":'danran','age':10})
+			print(v1)
+			print(v2)
+			
+		- index()  在字符串中寻找子字符串出现的位置，若在字符串中找不到子序列，则报错
+			test = "danran"
+			v = test.index('n')
+			print(v)
+			v = test.index('q')    # 找不到此字符‘q’，则输出报错
+			print(v)
+				Traceback (most recent call last):
+				  File "D:/Project/test.py", line 55, in <module>
+					v = test.index('q')
+				ValueError: substring not found
+				2
+						
+		- isalnum()    判断字符串中是否仅包含字符和数字
+			test = "danra123_"
+			v = test.isalnum()
+			print(v)
+			test = "danra123"
+			v = test.isalnum()
+			print(v)
+				False
+				True
+				
+		- isalpha()   判断字符串中是否全为字母
+			test = "danran12"
+			v = test.isalpha()
+			print(v)
+
+			test = "danran"
+			v = test.isalpha()
+			print(v)
+				False
+				True
+				
+		- isdigit(),isdecimal(),isnumeric()   判断字符串中是否全为数字，isdigit()比isdecimal()功能强大,isnumeric()还支持中文数字
+			test = "123456"
+			v1 = test.isdecimal()
+			v2 = test.isdigit()
+			print(v1,v2)
+				True True
+				
+			test = "②"
+			v1 = test.isdecimal()
+			v2 = test.isdigit()
+			print(v1,v2)
+				False True
+				
+			test = "二"
+			v1 = test.isdecimal()
+			v2 = test.isdigit()
+			v3 = test.isnumeric()
+			print(v1,v2,v3)
+				False
+				False
+				True
+				
+		- isidentifier()    判断字符串是否是合法的标识符，标识符由数字、字母及下划线组成，且不能以数字开头
+			a = "_123"
+			v = a.isidentifier()
+			print(v)	
+				True
+			
+			a = "123"
+			v = a.isidentifier()
+			print(v)
+				False 
+			
+		- isprintable()   判断是否存在不可显示的字符，eg:/t,/n 
+			test = "danran"
+			v = test.isprintable()
+			print(v)
+				True
+			
+			test = "dan\nZran"
+			v = test.isprintable()
+			print(v)
+				False
+				
+		- isspace()    判断字符串是否全为空格
+			test = "danran"
+			v = test.isspace()
+			print(v)
+				False
+			
+			test = "  dan  ran"
+			v = test.isspace()
+			print(v)
+				False
+				
+			test = "    "          # test字符串全为空，即空字符串
+			v = test.isspace()
+			print(v)
+				True
+				
+		- istitle()
+			test = "Dan ran Jevon Wei is me"
+			v = test.istitle()
+			print(v)
+				False
+				
+			test = "Dan ran Jevon Wei is me"
+			v1 = test.title()    	# 将test字符串的所有字符转换为首字母大写，即标题格式
+			print(v1)
+			v2 = v1.istitle()		# v1即为标题，输出为True
+			print(v2)
+				Dan Ran Jevon Wei Is Me
+				True
+		
+		*- join()    # 将字符串中的每个元素按照指定分隔符进行拼接
+			test = "DanranJevonWei"
+			print(test)
+			t = ' '
+			v1 = t.join(test)
+			v2 = "_".join(test)
+			print(v1)
+			print(v2)
+				D a n r a n J e v o n W e i
+				D_a_n_r_a_n_J_e_v_o_n_W_e_i
+				
+				
+		- expandtabs()   断句，即按指定字段分割
+			test = "username\temail\tpasswd\ndanran\tjevon@163.com\tPass1234\ndanran\tjevon@163.com\tPass1234\ndanran\tjevon@163.com\tPass1234"
+			v = test.expandtabs(15)    # \t制表符，每15位为一段，不足的以制表符填充
+			print(v)
+				username       email          passwd
+				danran         jevon@163.com  Pass1234
+				danran         jevon@163.com  Pass1234
+				danran         jevon@163.com  Pass1234
+				
+		- islower()    # 判断字符串是否全为小写字符
+		- lower()      # 将字符串转换为小写
+			test = "DanRan"
+			v1 = test.islower()
+			v2 = test.lower()
+			print(v1)
+			print(v2)
+				False
+				danran
+				
+		- isupper()    	# 判断字符串是否全为大写
+		- upper()		# 将字符串转换为大写
+			test = "DanRan"
+			v1 = test.isupper()
+			v2 = test.upper()
+			print(v1)
+			print(v2)
+				False
+				DANRAN
+				
+		- lstrip()   	# 去除字符串左边指定的字符，默认去除空格，制表符及上边空白行
+		- rstrip()		# 去除字符串右边指定的字符，默认去除空格，制表符及下边空白行
+		- strip()		# 去除字符串两边指定的字符，默认去除空格，制表符及两边空白行
+			test = "  Danran  "
+			v1 = test.lstrip()
+			v2 = test.rstrip()
+			v3 = test.strip()
+			print(v1)
+			print(v2)
+			print(v3)
+				Danran  
+				  Danran
+				Danran
+		
+			test = "Danran\n  "
+			v1 = test.lstrip('Da')		# 去除字符串左边的“Da”字符
+			v2 = test.rstrip()			# 去除字符串右边的空格，制表符及空白行
+			v3 = test.strip()
+			print(v1)
+			print(v2)
+			print(v3)
+				nran		# v1 
+							# v1
+				Danran		# v2
+				Danran		# v3
+		
+		
+		- maketrans()		# 构建一个字符的对应关系
+		- translate()		# 根据指定的字符对应关系将字符串进行转换
+			test = "Wei are you Dan ran on"			# 定义一个字符串
+			v = str.maketrans("Danran","123456")	# 构建一个字符对应关系，Danran对应为123345
+			new_test = test.translate(v)			# 将test字符串按照构建的v字符对应关系进行转换
+			print(new_test)
+				Wei 54e you 156 456 o6
+		
+		- partition()		# 将字符串按指定字符进行分割，仅分割为三份，从左边开始分割
+		- rpartition()		# 将字符串按指定字符进行分割，仅分割为三份，从右边开始分割
+		- split()			# 将字符串按指定字符串进行分割，可指定查找到的分割符的次数，不输出分隔符
+		- rsplit()			# 将字符串按指定字符串进行分割，可指定查找到的分割符的次数，不输出分隔符
+			test = "Danrandanrandanran"		# 定义一个字符串
+			v1 = test.partition("a")		# 将字符串以‘a’字符分割为三份，从左边开始分割
+			v2 = test.rpartition("a")		# 将字符串以‘a’字符分割为三份，从右边开始分割
+			print(v1)	
+			print(v2)
+				('D', 'a', 'nrandanrandanran')
+				('Danrandanrandanr', 'a', 'n')
+				
+		
+			test = "Danrandanrandanran"		# 定义一个字符串
+			v1 = test.split("a",2)			# 将字符串以‘a’字符分割，从左边开始查找两个‘a’分割字符，拿不到'a'分隔符
+			v2 = test.rsplit("a",2)			# 将字符串以‘a’字符分割，从右边开始查找两个‘a’分割字符，拿不到'a'分隔符
+			print(v1) 
+			print(v2)
+				['D', 'nr', 'ndanrandanran']
+				['Danrandanrand', 'nr', 'n']
+				
+		- splitlines()		# 根据换行符分割字符串，参数为True时保留换行符，参数为False是移除换行符
+			test = "Dan\nran\n Jevo\nnan"
+			v = test.splitlines(True)		# 参数为True，保留换行符
+			print(v)	
+				['Dan\n', 'ran\n', ' Jevo\n', 'nan']
+				
+			test = "Dan\nran\n Jevo\nnan"
+			v = test.splitlines(False)		# 参数为False，移除换行符
+			print(v)
+				['Dan', 'ran', ' Jevo', 'nan']
+				
+		- startswith()		# 判断字符串是否以指定的字符开头
+		- endswith()		# 判断字符串是否以指定的字符结尾
+			test = "backend 1.1.2.3"
+			v = test.startswith('a')
+			print(v)
+				False
+			
+			test = "backend 1.1.2.3"
+			v = test.endswith('3')
+			print(v)
+				True
+		
+		- swapcase()	# 指定字符串大小写转换
+			test = 'DanRan'
+			v = test.swapcase()
+			print(v)
+				dANrAN
+	
+		- len()			#获取当前字符串的长度
+			test = "Danran"
+			v=len(test)
+			print(v)
+				6
+			
+		- replace()   # 查找字符串中的特定字符并替换
+			test = "Danran"
+			v=test.replace('a','AAA')
+			print(v)
+				DAAAnrAAAn
+			 
+			 
+			test = "Danranaev" 
+			v=test.replace('a','AAA',2)   # 只替换前两个匹配的字符
+			print(v)
+				DAAAnrAAAnaev
+		
+		- range()  #帮忙创建连续的数字。
+			v = range(100)   
+			for item in v:
+			    print(item)
+		
+			v = range(0,100,5)    # 间隔为5，输出0-100的数字
+			for item in v:
+			    print(item)
+		
+		
+		- 索引，通过下标获取字符串中的某一个字符
+			test = "alex"
+			v=test[2]
+			print(v)	
+				e
+			
+		- 切片，将字符串进行切片
+			test="alex"
+			v=test[0:2]
+			print(v)
+				al
+			
+			test="alex"
+			v=test[0:-1]
+			print(v)
+				ale
+				
+	练习
+		将文件对应的索引打印出来
+			test = input(">>>")
+			print(test)
+			l = len(test)
+			print(l)
+			
+			r = range(0,l)
+			for item in r:
+			  print(item,test[item])
+				  danran    # print(test)
+					6					# print(l),打印test字符串的长度
+					0 d
+					1 a
+					2 n
+					3 r
+					4 a
+					5 n
+				
+			
+		
+			
+		
+		
+		
+		
+		
+		
+		
+				
+				
+				
+				
