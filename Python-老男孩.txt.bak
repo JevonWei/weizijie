@@ -610,27 +610,4 @@
 		li.remove(33)				# 删除列表中的元素“33”
 		print(li)
 			[11, 2, 'abc', 'danran', 2]
-			
-	- reverse()			# 将当前列表进行反转
-		li = [11,2,33,"abc",'danran',2]
-		li.reverse()
-		print(li)
-			[2, 'danran', 'abc', 33, 2, 11]
-			
-	- sort()				# 将列表中的元素排序
-		从小到大排序
-		li = [11,22,44,11,2,77]
-		li.sort()
-		print(li)
-			[2, 11, 11, 22, 44, 77]
-			
-		从大到小排序
-		li = [11,22,44,11,2,77]
-		li.sort(reverse=True)					
-		print(li)
-			[77, 44, 22, 11, 11, 2]
-			
-			
-			
-			
-			
+	
