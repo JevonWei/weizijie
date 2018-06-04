@@ -428,7 +428,7 @@
 					4 a
 					5 n
 				
-列表
+列表	(有序，元素可以被修改)
 	中括号括起来
 	使用“,”分割每个元素
 	列表中的元素可以是数字，字符串，列表，布尔值...
@@ -629,8 +629,197 @@
 		li.sort(reverse=True)					
 		print(li)
 			[77, 44, 22, 11, 11, 2]
+		
+元组	(有序的)
+	一般写元组的时候，随后在最后加入“,”
+	元素不可被修改，不能被删除或增加
+	
+	tu = (11,"danran",(1,2,3),[(33,44)],True,123,)
+	print(tu)
+		(11, 'danran', (1, 2, 3), [(33, 44)], True, 123)
+		
+	- 通过索引取值
+		tu = (11,"danran",(1,2,3),[(33,44)],True,123,)
+		v = tu[2]
+		print(v)		
+			(1, 2, 3)
 			
+	- 通过切片取值
+		tu = (11,"danran",(1,2,3),[(33,44)],True,123,)
+		v = tu[2:5]
+		print(v)
+			((1, 2, 3), [(33, 44)], True)
 			
+	- 通过for循环取元组中的值
+		tu = (11,"danran",(1,2,3),[(33,44)],True,123,)
+		for item in tu:
+		  print(item)	
+				11
+				danran
+				(1, 2, 3)
+				[(33, 44)]
+				True
+				123
 			
+	- 将字符串，列表，元组互相转换
+		s = "asdfghj124"
+		li = ["danran",123,[11,23]]
+		tu = (123,123,"danran")
+		
+		将字符串s转换Wie元组
+		v = tuple(s)
+		print(v)
+			('a', 's', 'd', 'f', 'g', 'h', 'j', '1', '2', '4')
+			
+		将列表转换为元组
+		v = tuple(li)
+		print(v)	
+			('danran', 123, [11, 23])
+			
+		将元组转换为列表
+		v = list(tu)
+		print(v)
+			[123, 123, 'danran']
+			
+		将元组转换Wie字符串
+		v = str(tu)
+		print(v)
+		print(type(v))
+			(123, 123, 'danran')
+			<class 'str'>
+			
+	- count()		# 统计指定元素在元组中出现的次数
+		tu = (11,"danran",(11,22,3),11,True,)
+		v = tu.count(11)
+		print(v)
+			2
+			
+	- index()		# 返回指定元素在元组中的索引位置，左边优先
+		tu = (11,"danran",(11,22,3),11,True,)
+		v = tu.index(11)
+		print(v)
+			0
+			
+	- 元组中列表一级元素不可修改，但列表中的元素可被修改
+		tu = (11,"danran",(11,22,3),[(12,23,34),12],True,)
+		tu[3][1] = 1111
+		print(tu)
+			(11, 'danran', (11, 22, 3), [(12, 23, 34), 1111], True)
+			
+		
+字典
+	字典的value可以是任何值
+	列表、字典不能作为字典的key 
+	字典是无序的
+					
+	info = {"k1":"12","k2":"23"}
+	print(info)
+		{'k1': '12', 'k2': '23'}
+			
+	- 获取字典的值
+		info = {"k1":"12","k2":"23"}
+		v = info["k2"]
+		print(v)
+			23
+			
+	- 字典支持del删除
+		info = {"k1":"12","k2":"23"}
+		del info["k1"]
+		print(info)
+			{'k2': '23'}
+			
+	- 默认for循环只返回key键
+		info = {"k1":"12","k2":"23"}
+		for item in info:
+		  print(item)
+		  	k1
+				k2
+				
+	- for循环返回字典的key键
+		info = {"k1":"12","k2":"23"}
+		for item in info.keys():
+		  print(item)
+				k1
+				k2
+				
+	- for循环获取字典的value值
+		info = {"k1":"12","k2":"23"}
+		for item in info.values():
+		  print(item)
+				12
+				23
+				
+	- for同时返回字典的key键和value值
+		info = {"k1":"12","k2":"23"}
+		for k,v in info.items():
+		  print(k,v)
+		    k1 12
+				k2 23
+			
+	- clear()		# 清空元组
+	- copy（）	# 复制拷贝元组
+	- fromkeys()	# 根据序列创建字典，并指定统一的值
+		v = dict.fromkeys(["k1",12,"danran"])
+		print(v)
+			{'k1': None, 12: None, 'danran': None}
+			
+		v = dict.fromkeys(["k1",12,"danran"],"Jevon")
+		print(v)
+			{'k1': 'Jevon', 12: 'Jevon', 'danran': 'Jevon'}
+			
+	- get()	# 根据字典的键取值
+		info = {"k1":"12","k2":"23"}
+		v = info.get("k1")
+		print(v)
+			12
+			
+		若指定的键不存在，则返回None,并将默认值赋给此不存在的键
+		info = {"k1":"12","k2":"23"}
+		v = info.get("k1111"，"danran")
+		print(v)
+			None
+			
+		info = {"k1":"12","k2":"23"}
+		v = info.get("k1111","danran")
+		print(v)
+			danran
+	
+	- pop()		# 删除字典中的键值对，当删除的键值对不存在时，可返还默认值
+		info = {"k1":"12","k2":"23"}
+		v = info.pop("k1")			# 删除k1键值对
+		print(info)			
+		print(v)								# 将删除的k1键值对打印出来
+			{'k2': '23'}
+			12
+		
+		删除的键值对k1111不存在，则返回“danran”	
+		info = {"k1":"12","k2":"23"}
+		v = info.pop("k1111","danran")
+		print(info)
+		print(v)
+			{'k1': '12', 'k2': '23'}
+			danran
+			
+	- popitem()		# 随机删除键值对，并返回删除的键值对
+		info = {"k1":"12","k2":"23"}
+		v = info.popitem()
+		print(info)
+		print(v)		
+			{'k1': '12'}
+			('k2', '23')
+			
+	- setdefault()		# 设置键的默认值，若键值对已存在，则获取当前key对应的值，若key不存在，则设置此key对应的值为指定的值
+		info = {"k1":"12","k2":"23"}
+		v = info.setdefault("k111","12334")
+		print(info)
+		print(v)
+			{'k1': '12', 'k2': '23', 'k111': '12334'}
+			12334
+				
+	- update()				# 更新字典，如key存在，则更新相应的键值，若key不存在，则增加相应的键值对
+		info = {"k1":"12","k2":"23"}
+		info.update({"k1":"1234","k3":"11"})
+		print(info)
+			{'k1': '1234', 'k2': '23', 'k3': '11'}
 			
 			
