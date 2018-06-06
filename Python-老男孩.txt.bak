@@ -816,6 +816,189 @@
 			{'k1': '12', 'k2': '23', 'k111': '12334'}
 			12334
 				
-
+	- update()				# 更新字典，如key存在，则更新相应的键值，若key不存在，则增加相应的键值对
+		info = {"k1":"12","k2":"23"}
+		info.update({"k1":"1234","k3":"11"})
+		print(info)
+			{'k1': '1234', 'k2': '23', 'k3': '11'}
+		
+数据类型
+	可变数据类型：列表，字典
+	不可变数据：字符串，数字，元组
+	
+			
+集合
+	集合为无序的，且为不可变数据类型。
+	
+	定义：由不同元素组成的集合，集合中是一组无序排列的可hash值，可作为字典的key，即必须为不可变类型。
+	特性：
+		1. 集合的目的是将不同的值存放在一起，不同的集合间用来做关系运算，无须纠结于集合中单个值。
+		
+	- 创建集合
+		s = {1,2,3,4,5}
+		print(type(s))
+			<class 'set'>
+			
+	- set()		# 创建集合
+		s = set("danran")
+		print(s)
+			{'a', 'r', 'd', 'n'}
+			
+	- add()		# 集合中添加元素
+		s = {1,2,3,4,5}
+		s.add("danran")
+		print(s)	
+			{1, 2, 3, 4, 5, 'danran'}
+			
+	- clear		# 清空集合
+		s = {1,2,3,4,5}
+		s.clear()
+		print(s)
+			set()
+		
+	- copy() 	# 集合拷贝复制
+		s = {1,2,3,4,5}
+		a = s.copy()
+		print(a)
+			{1, 2, 3, 4, 5}
+			
+			
+	- pop()		# 随机删除集合中的元素
+		s = {1,2,3,4,5}
+		s.pop()
+		print(s)
+			{2, 3, 4, 5}
+			
+	- remove()	# 删除集合中的指定元素，若指定元素不存在，则报错
+		s = {1,2,3,4,5,"danran"}		
+		s.remove("danran")			# 删除集合中的元素“danran”
+		print(s)
+			{1, 2, 3, 4, 5}
+			
+	- discard()		# 删除集合中的指定元素，若指定元素不存在，则不返回报错信息
+		s = {1,2,3,4,5,"danran"}
+		s.discard("danran")
+		print(s)
+			{1, 2, 3, 4, 5}
+			
+	- intersection()		# 两个集合的交集，等同于"&".	
+		p = set(["danran","Jevon","Wei","Jevon"])
+		l = set(["dan","Wei"])
+		print(p,l)
+		print(p.intersection(l))		# intersection()等用于"&".
+		print(p&l)
+			{'Jevon', 'danran', 'Wei'} {'dan', 'Wei'}
+			{'Wei'}
+			{'Wei'}
+			
+	- union()		# 两个集合的并集，等同于"|"。
+		p = set(["danran","Jevon","Wei","Jevon"])
+		l = set(["dan","Wei"])
+		print(p,l)
+		print(p.union(l))		# 输出两个集合的并集，等同于"|"符合。
+		print(p|l)
+			{'Jevon', 'danran', 'Wei'} {'dan', 'Wei'}
+			{'dan', 'Jevon', 'danran', 'Wei'}
+			{'dan', 'Jevon', 'danran', 'Wei'}
+			
+	- difference()		# 两个集合的差集，等同于"-"符号。
+		p = set(["danran","Jevon","Wei","Jevon"])
+		l = set(["dan","Wei"])
+		print(p,l)								# 打印两个集合
+		print(p.difference(l))		# 集合p于集合l的差集
+		print(p-l)								# 集合p于集合l的差集
+		print(l.difference(p))		# 集合l于集合p的差集
+		print(l-p)								# 集合l于集合p的差集
+			{'danran', 'Jevon', 'Wei'} {'Wei', 'dan'}				# 打印两个集合
+			{'danran', 'Jevon'}															# 集合p于集合l的差集
+			{'danran', 'Jevon'}								 							# 集合p于集合l的差集
+			{'dan'}																					# 集合l于集合p的差集
+			{'dan'}																					# 集合l于集合p的差集
+			
+			
+	- symmetric_difference()			# 两个集合的交叉补集运算，等同于"^"符号
+		p = set(["danran","Jevon","Wei","Jevon"])
+		l = set(["dan","Wei"])
+		print(p,l)
+		print(p.symmetric_difference(l))		# p集合于l集合的交叉补集
+		print(p^l)							          	# p集合于l集合的交叉补集
+		print(l.symmetric_difference(p))		# l集合于p集合的交叉补集
+		print(l^p)													# l集合于p集合的交叉补集
+			{'Wei', 'Jevon', 'danran'} {'Wei', 'dan'}			
+			{'danran', 'Jevon', 'dan'}			# p集合于l集合的交叉补集
+			{'danran', 'Jevon', 'dan'}			# p集合于l集合的交叉补集
+			{'Jevon', 'danran', 'dan'}			# l集合于p集合的交叉补集
+			{'Jevon', 'danran', 'dan'}			# l集合于p集合的交叉补集
+	
+	
+	- difference_update()		# 更新两个集合的差集
+		p = set(["danran","Jevon","Wei","Jevon"])
+		l = set(["dan","Wei"])
+		print(p,l)
+		s = p.difference(l)
+		print(s)
+		p.difference_update(l)			# 更新p集合与l集合的差集
+		print(s)
+			{'Wei', 'Jevon', 'danran'} {'dan', 'Wei'}
+			{'Jevon', 'danran'}
+			{'Jevon', 'danran'}			# 更新后的差集
+		
+	- symmetric_difference_update		# 更新两个集合的交叉补集
+		p = set(["danran","Jevon","Wei","Jevon"])
+		l = set(["dan","Wei"])
+		print(p,l)
+		s = p.symmetric_difference(l)
+		print(s)
+		p.symmetric_difference_update(l)		# 更新两个集合的交叉补集
+		print(s) 				
+			{'danran', 'Wei', 'Jevon'} {'Wei', 'dan'}
+			{'danran', 'Jevon', 'dan'}
+			{'danran', 'Jevon', 'dan'}				# 输出更新后的两个集合的交叉补集
+			
+	- intersection_update()		# 更新两个集合的交集	
+		
+		
+	- isdisjoint()		# 如果两个集合没有交集，即返回"True"
+		p = set(["danran","Jevon","Wei","Jevon"])
+		l = set(["dan","Wei"])
+		q = set(["li","ran"])
+		print(p.isdisjoint(l))		# 集合p和集合l交集不为空，即返回False
+		print(l.isdisjoint(q))		# 集合l和集合q交集为空，即返回True
+			False
+			True
+		
+	- issubset()		# 判断集合是否是子集关系，等同于"l<=p"符号。
+		p = set(["danran","Wei","Jevon"])
+		l = set(["danran","Wei"])
+		print(l.issubset(p))		# 集合l是集合p的子集
+		print(l<=p)
+		print(p.issubset(l))
+			True
+			True
+			False
+			
+	- issuperset()		# 判断集合是否是父集关系，等同于"p>=l"符号。
+		p = set(["danran","Wei","Jevon"])
+		l = set(["danran","Wei"])
+		print(p.issuperset(l))			# 集合p是集合l的父集
+		print(p>=l)
+			True
+			True
+			
+	- update()		# 对集合更新多个值
+		p = set(["danran","Wei","Jevon"])
+		l = set(["danran","xin"])
+		p.update(l)
+		print(p)		
+			{'Wei', 'danran', 'Jevon', 'xin'}
+			
+		对可迭代的数据都可更新到集合中
+		p = set(["danran","Wei","Jevon"])
+		p.update(["dan"])
+		print(p)
+			{'dan', 'Wei', 'danran', 'Jevon'}
+			
+			
+			
 			
 			
